@@ -69,6 +69,12 @@ pub(crate) struct Arguments {
     requires = "core-lightning-rpc-file-path"
   )]
   pub(crate) core_lightning_rpc_file_path: Option<PathBuf>,
+  #[structopt(
+  long,
+  help = "Connect to monero node rpc.",
+  requires = "monero-rpc-address"
+  )]
+  pub(crate) monero_rpc_address: Option<String>,
 }
 
 #[cfg(test)]

@@ -135,7 +135,27 @@ impl Server {
         }
       }
       Ok(Some(client))
-    } else {
+    }
+    else if let Some(monero_rpc_address) = &arguments.monero_rpc_address {
+      println!("Setting up monero rpc");
+      let client = Self::setup_monero_client(monero_rpc_address.clone()).await?;
+      match client.ping().await.context(error::LndRpcStatus) {
+        Err(error) => {
+          writeln!(
+            environment.stderr,
+            "warning: Cannot connect to monero node: {}",
+            error,
+          )
+              .context(error::StderrWrite)?;
+        }
+        Ok(()) => {
+          writeln!(environment.stderr, "Connected to monero node",)
+              .context(error::StderrWrite)?;
+        }
+      }
+      Ok(Some(client))
+    }
+    else {
       Ok(None)
     }
   }
@@ -180,6 +200,14 @@ impl Server {
       .into_string()
       .unwrap();
     let client = agora_lnd_client::CoreLightningClient::new(my_str).await;
+
+    Ok(Box::new(client))
+  }
+
+  async fn setup_monero_client(
+    monero_rpc_address: String,
+  ) -> Result<Box<dyn agora_lnd_client::LightningNodeClient>> {
+    let client = agora_lnd_client::MoneroRpcClient::new(monero_rpc_address).await;
 
     Ok(Box::new(client))
   }
