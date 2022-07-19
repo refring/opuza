@@ -7,11 +7,13 @@ use {
 pub use core_lightning::CoreLightningClient;
 pub use lnd::LndClient;
 pub use millisatoshi::Millisatoshi;
+pub use self::monero::MoneroRpcClient;
 
 mod core_lightning;
 mod https_service;
 mod lnd;
 mod millisatoshi;
+mod monero;
 
 #[derive(Debug, Clone)]
 pub struct LightningInvoice {
