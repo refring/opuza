@@ -298,7 +298,7 @@ impl Files {
       .await
       .context(error::LndRpcStatus)?
       .ok_or_else(|| error::InvoiceNotFound { r_hash }.build())?;
-    let payment_request = invoice.payment_request.to_uppercase();
+    let payment_request = invoice.payment_request;
     let qr_code = QrCode::encode_text(&payment_request, QrCodeEcc::Medium)
       .context(error::PaymentRequestTooLongForQrCode { payment_request })?;
     Ok(
