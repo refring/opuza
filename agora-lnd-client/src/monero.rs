@@ -1,4 +1,5 @@
-use monero_rpc::{RpcClient, SubaddressData};
+use std::collections::HashMap;
+use monero_rpc::{GetTransfersCategory, GetTransfersSelector, RpcClient, SubaddressData};
 use monero::Address;
 use openssl::sha::{sha256};
 use serde::{Deserialize, Serialize};
@@ -139,6 +140,10 @@ impl LightningNodeClient for MoneroRpcClient {
 
         let cln_inv: LightningInvoice = sub_address?.clone().into();
 
+        println!("lookup invoice {:?}", cln_inv);
+
+        self.update_payments().await;
+
         Ok(Some(cln_inv))
     }
 
@@ -148,6 +153,43 @@ impl LightningNodeClient for MoneroRpcClient {
         _r_hash: [u8; 32],
     ) -> Result<Option<LightningInvoice>, LightningError> {
         Err(LightningError)
+    }
+}
+
+impl MoneroRpcClient{
+    async fn update_payments(&self) {
+        let daemon_client = RpcClient::new(self.inner.clone());
+        let wallet_rpc = daemon_client.wallet();
+
+        let mut category_selector = HashMap::new();
+        category_selector.insert(GetTransfersCategory::In, true);
+
+        let mut transfer_selector = GetTransfersSelector::default();
+        transfer_selector.category_selector = category_selector;
+
+        let transfers = wallet_rpc.get_transfers(transfer_selector).await;
+
+        // Lookup invoices for transactions
+        for transfer in transfers.unwrap().get(&GetTransfersCategory::In).unwrap().iter() {
+            println!("Transfer: {:?}", transfer);
+            let address_filter = vec![transfer.subaddr_index.minor];
+            let address = wallet_rpc.get_address(0, Some(address_filter)).await;
+
+            let address_tmp = address.unwrap();
+            let sub_address = address_tmp.addresses.get(0).ok_or_else(|| LightningError);
+            let mut cln_inv: LightningInvoice = sub_address.clone().unwrap().clone().into();
+            println!("Invoice: {:?}", cln_inv);
+
+            if transfer.double_spend_seen == false && transfer.amount > cln_inv.value_msat.value() {
+                let mut monero_invoice: MoneroInvoice = serde_json::from_str(&sub_address.unwrap().label).unwrap();
+                monero_invoice.is_settled = true;
+                // Save the metadata we need later on as serialized data in the wallet
+                let label = serde_json::to_string(&monero_invoice).unwrap();
+                let bla = wallet_rpc.label_address(0, transfer.subaddr_index.minor, label).await.map_err(|_| LightningError);
+            }
+        }
+
+
     }
 }
 
