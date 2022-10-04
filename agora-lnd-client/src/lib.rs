@@ -13,6 +13,7 @@ mod core_lightning;
 mod https_service;
 mod lnd;
 mod millisatoshi;
+mod piconero;
 mod monero;
 
 #[derive(Debug, Clone)]
