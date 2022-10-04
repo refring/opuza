@@ -15,7 +15,7 @@ impl Piconero {
         self.0
     }
 
-    fn new(value: u64) -> Self {
+    pub fn new(value: u64) -> Self {
         Self(value)
     }
 }
