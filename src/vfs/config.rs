@@ -4,7 +4,7 @@ use crate::common::*;
 #[serde(default, deny_unknown_fields, rename_all = "kebab-case")]
 pub(crate) struct Config {
   paid: Option<bool>,
-  pub(super) base_price: Option<Millisatoshi>,
+  pub(super) base_price: Option<Piconero>,
 }
 
 impl Config {
@@ -143,16 +143,16 @@ mod tests {
   }
 
   #[test]
-  fn parses_base_price_in_satoshi() {
+  fn parses_base_price_in_xmr() {
     let temp_dir = TempDir::new().unwrap();
     let yaml = "
       paid: true
-      base-price: 3 sat
+      base-price: 3 XMR
     "
     .unindent();
     fs::write(temp_dir.path().join(".agora.yaml"), yaml).unwrap();
     let config = Config::for_dir(temp_dir.path(), temp_dir.path()).unwrap();
-    assert_eq!(config.base_price, Some(Millisatoshi::new(3000)));
+    assert_eq!(config.base_price, Some(Piconero::new(3_000_000_000_000)));
   }
 
   #[test]
@@ -160,7 +160,7 @@ mod tests {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
       temp_dir.path().join(".agora.yaml"),
-      "{paid: true, base-price: 42 sat}",
+      "{paid: true, base-price: 1.5 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
@@ -169,7 +169,7 @@ mod tests {
       config,
       Config {
         paid: Some(true),
-        base_price: Some(Millisatoshi::new(42_000))
+        base_price: Some(Piconero::new(1_500_000_000_000))
       }
     );
   }
@@ -179,7 +179,7 @@ mod tests {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
       temp_dir.path().join(".agora.yaml"),
-      "{paid: true, base-price: 42 sat}",
+      "{paid: true, base-price: 1 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
@@ -189,7 +189,7 @@ mod tests {
       config,
       Config {
         paid: Some(false),
-        base_price: Some(Millisatoshi::new(42_000))
+        base_price: Some(Piconero::ONE_XMR)
       }
     );
   }
@@ -199,21 +199,17 @@ mod tests {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
       temp_dir.path().join(".agora.yaml"),
-      "{paid: true, base-price: 42 sat}",
+      "{paid: true, base-price: 3 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
-    fs::write(
-      temp_dir.path().join("dir/.agora.yaml"),
-      "base-price: 23 sat",
-    )
-    .unwrap();
+    fs::write(temp_dir.path().join("dir/.agora.yaml"), "base-price: 1 XMR").unwrap();
     let config = Config::for_dir(temp_dir.path(), &temp_dir.path().join("dir")).unwrap();
     assert_eq!(
       config,
       Config {
         paid: Some(true),
-        base_price: Some(Millisatoshi::new(23_000))
+        base_price: Some(Piconero::ONE_XMR)
       }
     );
   }
@@ -223,13 +219,13 @@ mod tests {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
       temp_dir.path().join(".agora.yaml"),
-      "{paid: true, base-price: 42 sat}",
+      "{paid: true, base-price: 0.001 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
     fs::write(
       temp_dir.path().join("dir/.agora.yaml"),
-      "base-price: 23 sat",
+      "base-price: 0.002 XMR",
     )
     .unwrap();
     let config = Config::for_dir(temp_dir.path(), temp_dir.path()).unwrap();
@@ -237,7 +233,7 @@ mod tests {
       config,
       Config {
         paid: Some(true),
-        base_price: Some(Millisatoshi::new(42_000))
+        base_price: Some(Piconero::new(1_000_000_000))
       }
     );
   }
@@ -248,13 +244,13 @@ mod tests {
     fs::create_dir(temp_dir.path().join("foo")).unwrap();
     fs::write(
       temp_dir.path().join("foo/.agora.yaml"),
-      "{paid: true, base-price: 42 sat}",
+      "{paid: true, base-price: 1 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("bar")).unwrap();
     fs::write(
       temp_dir.path().join("bar/.agora.yaml"),
-      "{paid: true, base-price: 23 sat}",
+      "{paid: true, base-price: 2 XMR}",
     )
     .unwrap();
     let config = Config::for_dir(temp_dir.path(), &temp_dir.path().join("foo")).unwrap();
@@ -262,7 +258,7 @@ mod tests {
       config,
       Config {
         paid: Some(true),
-        base_price: Some(Millisatoshi::new(42_000))
+        base_price: Some(Piconero::ONE_XMR)
       }
     );
   }
@@ -272,7 +268,7 @@ mod tests {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
       temp_dir.path().join(".agora.yaml"),
-      "{paid: true, base-price: 42 sat}",
+      "{paid: true, base-price: 2 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("root")).unwrap();

@@ -65,14 +65,8 @@ pub(crate) struct Arguments {
   pub(crate) lnd_rpc_macaroon_path: Option<PathBuf>,
   #[structopt(
     long,
-    help = "Connect to core-lightning using the RPC file path <core-lightning-rpc-file-path>. By default core-lightning writes its RPC file to to `~/.lightning/lightning-rpc`.",
-    requires = "core-lightning-rpc-file-path"
-  )]
-  pub(crate) core_lightning_rpc_file_path: Option<PathBuf>,
-  #[structopt(
-  long,
-  help = "Connect to monero node rpc.",
-  requires = "monero-rpc-address"
+    help = "Connect to monero node rpc.",
+    requires = "monero-rpc-address"
   )]
   pub(crate) monero_rpc_address: Option<String>,
 }

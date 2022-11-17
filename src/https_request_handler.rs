@@ -26,9 +26,9 @@ impl HttpsRequestHandler {
     arguments: &Arguments,
     acme_cache_directory: &Path,
     https_port: u16,
-    lightning_client: Option<Box<dyn agora_lnd_client::LightningNodeClient>>,
+    rpc_client: Option<agora_monero_client::MoneroRpcClient>,
   ) -> Result<HttpsRequestHandler> {
-    let request_handler = RequestHandler::new(environment, &arguments.directory, lightning_client);
+    let request_handler = RequestHandler::new(environment, &arguments.directory, rpc_client);
     let socket_addr = (arguments.address.as_str(), https_port)
       .to_socket_addrs()
       .context(error::AddressResolutionIo {

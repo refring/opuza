@@ -9,7 +9,7 @@ repository = "https://github.com/agora-org/agora"
 homepage = "https://github.com/agora-org/agora"
 
 [workspace]
-members = [".", "agora-lnd-client", "agora-test-context", "bin/prerelease", "bin/publish", "lnd-test-context"]
+members = [".", "agora-monero-client", "agora-test-context", "bin/prerelease", "bin/publish", "lnd-test-context"]
 
 [dependencies]
 color-backtrace = "0.5.1"
@@ -32,11 +32,10 @@ rustls-acme = "0.1.7"
 serde_yaml = "0.8.17"
 termcolor = "1.1.2"
 tokio-rustls = "0.22.0"
-tonic = "0.5.2"
 
-[dependencies.agora-lnd-client]
-path = "agora-lnd-client"
-version = "0.0.2"
+[dependencies.agora-monero-client]
+path = "agora-monero-client"
+version = "0.0.3"
 
 [dependencies.hyper]
 version = "0.14.7"
@@ -80,7 +79,6 @@ chromiumoxide = "0.3.1"
 executable-path = "1.0.0"
 guard = "0.5.1"
 image = "0.22.0"
-lightning-invoice = "0.14.0"
 nix = "0.23.0"
 pretty_assertions = "1.0.0"
 regex = "1.5.4"

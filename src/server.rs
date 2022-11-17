@@ -4,6 +4,7 @@ pub(crate) struct Server {
   http_request_handler: Option<hyper::Server<AddrIncoming, Shared<RequestHandler>>>,
   https_request_handler: Option<HttpsRequestHandler>,
   https_redirect_server: Option<hyper::Server<AddrIncoming, Shared<HttpsRedirectService>>>,
+  transaction_listener: Option<TransactionListener>,
   #[cfg(test)]
   directory: std::path::PathBuf,
 }
@@ -24,19 +25,21 @@ impl Server {
       None => None,
     };
 
+    let transaction_listener = Some(TransactionListener::new().await?);
+
     let (https_request_handler, https_redirect_server) =
       if let Some(https_port) = arguments.https_port {
         let acme_cache_directory = arguments
           .acme_cache_directory
           .as_ref()
           .expect("<https-port> requires <acme-cache-directory>");
-        let lightning_client = Self::setup_lightning_node_client(environment, &arguments).await?;
+        let rpc_client = Self::setup_rpc_client(environment, &arguments).await?;
         let https_request_handler = HttpsRequestHandler::new(
           environment,
           &arguments,
           acme_cache_directory,
           https_port,
-          lightning_client,
+          rpc_client,
         )
         .await?;
         let https_redirect_server =
@@ -50,6 +53,7 @@ impl Server {
       http_request_handler,
       https_request_handler,
       https_redirect_server,
+      transaction_listener,
       #[cfg(test)]
       directory,
     })
@@ -60,7 +64,7 @@ impl Server {
     arguments: &Arguments,
     http_port: u16,
   ) -> Result<hyper::Server<AddrIncoming, Shared<RequestHandler>>> {
-    let lightning_client = Self::setup_lightning_node_client(environment, arguments).await?;
+    let rpc_client = Self::setup_rpc_client(environment, arguments).await?;
 
     let socket_addr = (arguments.address.as_str(), http_port)
       .to_socket_addrs()
@@ -76,7 +80,7 @@ impl Server {
       })?;
 
     let request_handler = hyper::Server::bind(&socket_addr).serve(Shared::new(
-      RequestHandler::new(environment, &arguments.directory, lightning_client),
+      RequestHandler::new(environment, &arguments.directory, rpc_client),
     ));
 
     writeln!(
@@ -88,128 +92,38 @@ impl Server {
     Ok(request_handler)
   }
 
-  async fn setup_lightning_node_client(
+  async fn setup_rpc_client(
     environment: &mut Environment,
     arguments: &Arguments,
-  ) -> Result<Option<Box<dyn agora_lnd_client::LightningNodeClient>>> {
-    if let Some(lnd_rpc_authority) = &arguments.lnd_rpc_authority {
-      let client = Self::setup_lnd_client(
-        lnd_rpc_authority.clone(),
-        &arguments.lnd_rpc_cert_path,
-        &arguments.lnd_rpc_macaroon_path,
-      )
-      .await?;
-      match client.ping().await.context(error::LndRpcStatus) {
-        Err(error) => {
-          writeln!(
-            environment.stderr,
-            "warning: Cannot connect to LND gRPC server at `{}`: {}",
-            lnd_rpc_authority, error,
-          )
-          .context(error::StderrWrite)?;
-        }
-        Ok(()) => {
-          writeln!(
-            environment.stderr,
-            "Connected to LND RPC server at {}",
-            lnd_rpc_authority
-          )
-          .context(error::StderrWrite)?;
-        }
-      }
-      Ok(Some(client))
-    } else if let Some(core_lightning_rpc_file_path) = &arguments.core_lightning_rpc_file_path {
-      let client = Self::setup_core_lightning_client(core_lightning_rpc_file_path.clone()).await?;
-      match client.ping().await.context(error::LndRpcStatus) {
-        Err(error) => {
-          writeln!(
-            environment.stderr,
-            "warning: Cannot connect to core-lightning server: {}",
-            error,
-          )
-          .context(error::StderrWrite)?;
-        }
-        Ok(()) => {
-          writeln!(environment.stderr, "Connected to core-lightning serve",)
-            .context(error::StderrWrite)?;
-        }
-      }
-      Ok(Some(client))
-    }
-    else if let Some(monero_rpc_address) = &arguments.monero_rpc_address {
-      println!("Setting up monero rpc");
+  ) -> Result<Option<agora_monero_client::MoneroRpcClient>> {
+    if let Some(monero_rpc_address) = &arguments.monero_rpc_address {
+      println!("Setting up Monero rpc");
       let client = Self::setup_monero_client(monero_rpc_address.clone()).await?;
       match client.ping().await.context(error::LndRpcStatus) {
         Err(error) => {
           writeln!(
             environment.stderr,
-            "warning: Cannot connect to monero node: {}",
+            "warning: Cannot connect to Monero node: {}",
             error,
           )
-              .context(error::StderrWrite)?;
+          .context(error::StderrWrite)?;
         }
         Ok(()) => {
-          writeln!(environment.stderr, "Connected to monero node",)
-              .context(error::StderrWrite)?;
+          writeln!(environment.stderr, "Connected to Monero node",).context(error::StderrWrite)?;
         }
       }
       Ok(Some(client))
-    }
-    else {
+    } else {
       Ok(None)
     }
   }
 
-  async fn setup_lnd_client(
-    lnd_rpc_authority: Authority,
-    lnd_rpc_cert_path: &Option<PathBuf>,
-    lnd_rpc_macaroon_path: &Option<PathBuf>,
-  ) -> Result<Box<dyn agora_lnd_client::LightningNodeClient>> {
-    let lnd_rpc_cert = match &lnd_rpc_cert_path {
-      Some(path) => {
-        let pem = tokio::fs::read_to_string(&path)
-          .await
-          .context(error::FilesystemIo { path })?;
-        Some(X509::from_pem(pem.as_bytes()).context(error::LndRpcCertificateParse)?)
-      }
-      None => None,
-    };
-
-    let lnd_rpc_macaroon = match &lnd_rpc_macaroon_path {
-      Some(path) => Some(
-        tokio::fs::read(&path)
-          .await
-          .context(error::FilesystemIo { path })?,
-      ),
-      None => None,
-    };
-
-    let client =
-      agora_lnd_client::LndClient::new(lnd_rpc_authority.clone(), lnd_rpc_cert, lnd_rpc_macaroon)
-        .await
-        .context(error::LndRpcConnect)?;
-
-    Ok(Box::new(client))
-  }
-
-  async fn setup_core_lightning_client(
-    core_lightning_rpc_file_path: PathBuf,
-  ) -> Result<Box<dyn agora_lnd_client::LightningNodeClient>> {
-    let my_str = core_lightning_rpc_file_path
-      .into_os_string()
-      .into_string()
-      .unwrap();
-    let client = agora_lnd_client::CoreLightningClient::new(my_str).await;
-
-    Ok(Box::new(client))
-  }
-
   async fn setup_monero_client(
     monero_rpc_address: String,
-  ) -> Result<Box<dyn agora_lnd_client::LightningNodeClient>> {
-    let client = agora_lnd_client::MoneroRpcClient::new(monero_rpc_address).await;
+  ) -> Result<agora_monero_client::MoneroRpcClient> {
+    let client = agora_monero_client::MoneroRpcClient::new(monero_rpc_address).await;
 
-    Ok(Box::new(client))
+    Ok(client)
   }
 
   pub(crate) async fn run(self) -> Result<()> {
@@ -219,6 +133,9 @@ impl Server {
       OptionFuture::from(self.https_request_handler.map(|x| x.run())).map(Ok),
       OptionFuture::from(self.https_redirect_server)
         .map(|option| option.unwrap_or(Ok(())).context(error::ServerRun)),
+      // OptionFuture::from(self.transaction_listener)
+      //   .map(|option| option.unwrap_or(Ok(())).context(error::ServerRun)),
+      OptionFuture::from(self.transaction_listener.map(|x| x.run())).map(Ok),
     )?;
 
     Ok(())
@@ -255,6 +172,27 @@ impl Server {
         .as_ref()
         .map(|server| server.local_addr().port()),
       files_directory: self.directory.to_owned(),
+    }
+  }
+}
+
+struct TransactionListener;
+
+impl TransactionListener {
+  pub async fn new() -> Result<TransactionListener> {
+    Ok(TransactionListener)
+  }
+
+  pub async fn run(self) {
+    println!("Running TransactionListener");
+    let mut n = 1;
+
+    // Loop while `n` is less than 101
+    while n < 10 {
+      println!("Running TransactionListener");
+
+      // Increment counter
+      n += 1;
     }
   }
 }

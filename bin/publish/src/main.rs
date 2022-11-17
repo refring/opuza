@@ -7,7 +7,7 @@ use {
 struct Arguments {
   revision: String,
   #[structopt(long)]
-  publish_agora_lnd_client: bool,
+  publish_agora_monero_client: bool,
 }
 
 fn main() {
@@ -58,8 +58,8 @@ fn main() {
 
   ("git", "push", "origin", &version.to_string()).run();
 
-  if arguments.publish_agora_lnd_client {
-    ("cargo", "publish", CurrentDir("agora-lnd-client")).run();
+  if arguments.publish_agora_monero_client {
+    ("cargo", "publish", CurrentDir("agora-monero-client")).run();
   }
 
   ("cargo", "publish").run();

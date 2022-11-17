@@ -8,17 +8,17 @@ use {
 #[derive(Clone, Debug)]
 pub(crate) struct Files {
   vfs: Vfs,
-  lightning_client: Option<Box<dyn agora_lnd_client::LightningNodeClient>>,
+  rpc_client: Option<agora_monero_client::MoneroRpcClient>,
 }
 
 impl Files {
   pub(crate) fn new(
     base_directory: InputPath,
-    lightning_client: Option<Box<dyn agora_lnd_client::LightningNodeClient>>,
+    rpc_client: Option<agora_monero_client::MoneroRpcClient>,
   ) -> Self {
     Self {
       vfs: Vfs::new(base_directory),
-      lightning_client,
+      rpc_client,
     }
   }
 
@@ -147,7 +147,7 @@ impl Files {
       return Self::serve_file(path).await;
     }
 
-    let lightning_client = self.lightning_client.as_mut().ok_or_else(|| {
+    let rpc_client = self.rpc_client.as_mut().ok_or_else(|| {
       error::LndNotConfiguredPaidFileRequest {
         path: path.display_path().to_owned(),
       }
@@ -162,14 +162,14 @@ impl Files {
       .build()
     })?;
     let file_path_with_uuid = format!("{}_{}!", file_path, Uuid::new_v4());
-    let invoice = lightning_client
+    let invoice = rpc_client
       .add_invoice(&file_path_with_uuid, base_price)
       .await
       .context(error::LndRpcStatus)?;
     redirect(format!(
       "{}?invoice={}",
       request.uri().path(),
-      hex::encode(invoice.payment_hash),
+      invoice.payment_hash,
     ))
   }
 
@@ -189,13 +189,13 @@ impl Files {
     request_tail: &[&str],
     r_hash: [u8; 32],
   ) -> Result<Response<Body>> {
-    let lightning_client = self.lightning_client.as_mut().ok_or_else(|| {
+    let rpc_client = self.rpc_client.as_mut().ok_or_else(|| {
       error::LndNotConfiguredInvoiceRequest {
         uri_path: request.uri().path().to_owned(),
       }
       .build()
     })?;
-    let invoice = lightning_client
+    let invoice = rpc_client
       .lookup_invoice(r_hash)
       .await
       .context(error::LndRpcStatus)?
@@ -213,19 +213,19 @@ impl Files {
       );
     }
 
-    let value = invoice.value_msat;
+    let value = Piconero::new(invoice.value);
     if invoice.is_settled {
       let path = self.vfs.file_path(&request_tail)?;
       Self::serve_file(&path).await
     } else {
-      let qr_code_url = format!("/invoice/{}.svg", hex::encode(invoice.payment_hash));
+      let qr_code_url = format!("/invoice/{}.svg", invoice.payment_hash);
       let filename = request_tail;
       Ok(html::wrap_body(
         &format!("Invoice for {}", filename),
         html! {
           div class="invoice" {
             div class="label" {
-              "Lightning Payment Request for " (value) " to access "
+              "Monero Payment Request for " (value) " to access "
               span class="filename" {
                   (filename)
               }
@@ -242,7 +242,7 @@ impl Files {
             }
 
             div class="links" {
-              a class="payment-link" href={"lightning:" (invoice.payment_request)} {
+              a class="payment-link" href={"monero:" (invoice.payment_request)} {
                 "Open invoice in wallet"
               }
               a class="reload-link" href=(request.uri()) {
@@ -251,7 +251,7 @@ impl Files {
             }
             img
               class="qr-code"
-              alt="Lightning Network Invoice QR Code"
+              alt="Monero Network Invoice QR Code"
               src=(qr_code_url)
               width="400"
               height="400";
@@ -265,7 +265,7 @@ impl Files {
             ol {
               li {
                 "Pay the invoice for " (value) " above "
-                "with your Lightning Network wallet by "
+                "with your Monero wallet by "
                 "scanning the QR code, "
                 "copying the payment request string, or "
                 "clicking the \"Open invoice in wallet\" link."
@@ -287,13 +287,13 @@ impl Files {
   ) -> Result<Response<Body>> {
     use qrcodegen::{QrCode, QrCodeEcc};
 
-    let lightning_client = self.lightning_client.as_mut().ok_or_else(|| {
+    let rpc_client = self.rpc_client.as_mut().ok_or_else(|| {
       error::LndNotConfiguredInvoiceRequest {
         uri_path: request.uri().path().to_owned(),
       }
       .build()
     })?;
-    let invoice = lightning_client
+    let invoice = rpc_client
       .lookup_invoice(r_hash)
       .await
       .context(error::LndRpcStatus)?

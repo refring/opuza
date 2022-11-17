@@ -13,7 +13,7 @@ pub(crate) use {
     server::Server,
     stderr::Stderr,
   },
-  agora_lnd_client::Millisatoshi,
+  agora_monero_client::Piconero,
   futures::{
     future::{BoxFuture, OptionFuture},
     FutureExt, Stream, StreamExt,

@@ -41,7 +41,7 @@ impl Vfs {
     Ok(self.config(path)?.paid())
   }
 
-  pub(crate) fn base_price(&self, path: &InputPath) -> Result<Option<Millisatoshi>> {
+  pub(crate) fn base_price(&self, path: &InputPath) -> Result<Option<Piconero>> {
     self.check_path(path)?;
     Ok(self.config(path)?.base_price)
   }
