@@ -34,7 +34,7 @@ fn serves_files_for_free_by_default() {
 #[test]
 fn redirects_to_invoice_url() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write("foo/.agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write("foo/.opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("foo/bar", "");
     let response = reqwest::get(context.files_url().join("foo/bar").unwrap())
       .await
@@ -77,7 +77,7 @@ fn non_existant_files_dont_redirect_to_invoice() {
 fn invoice_url_serves_bech32_encoded_invoice() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
     context.write("foo", "");
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     let html = html(&context.files_url().join("foo").unwrap()).await;
     guard_unwrap!(let &[payment_request] = css_select(&html, ".payment-request").as_slice());
     let payment_request = payment_request.text().collect::<String>();
@@ -91,7 +91,7 @@ fn invoice_url_serves_bech32_encoded_invoice() {
 #[test]
 fn invoice_url_contains_filename() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("test-filename", "");
     let html = html(&context.files_url().join("test-filename").unwrap()).await;
     guard_unwrap!(let &[payment_request] = css_select(&html, ".invoice").as_slice());
@@ -102,10 +102,10 @@ fn invoice_url_contains_filename() {
 #[test]
 fn invoice_title_contains_the_word_invoice() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("test-filename", "");
     let text = text(&context.files_url().join("test-filename").unwrap()).await;
-    assert_contains(&text, "<title>Invoice for test-filename · Agora</title>");
+    assert_contains(&text, "<title>Invoice for test-filename · Opuza</title>");
   });
 }
 
@@ -137,7 +137,7 @@ fn decode_qr_code_from_svg(svg: &str) -> String {
 fn invoice_url_links_to_qr_code() {
   let receiver = LndTestContext::new_blocking();
   test_with_lnd(&receiver.clone(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("test-filename", "precious content");
     let response = get(&context.files_url().join("test-filename").unwrap()).await;
     let invoice_url = response.url().clone();
@@ -168,7 +168,7 @@ fn invoice_url_links_to_qr_code() {
 fn paying_invoice_allows_downloading_file() {
   let receiver = LndTestContext::new_blocking();
   test_with_lnd(&receiver.clone(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("foo", "precious content");
     let response = get(&context.files_url().join("foo").unwrap()).await;
     let invoice_url = response.url().clone();
@@ -189,7 +189,7 @@ fn paying_invoice_allows_downloading_file() {
 fn allows_configuring_invoice_amount() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
     use lightning_invoice::Invoice;
-    context.write(".agora.yaml", "{paid: true, base-price: 1234 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1234 sat}");
     context.write("foo", "precious content");
     let response = get(&context.files_url().join("foo").unwrap()).await;
     let html = Html::parse_document(&response.text().await.unwrap());
@@ -205,7 +205,7 @@ fn allows_configuring_invoice_amount() {
 #[test]
 fn configuring_paid_without_base_price_returns_error() {
   let stderr = test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "paid: true");
+    context.write(".opuza.yaml", "paid: true");
     context.write("foo", "precious content");
     let response = reqwest::get(context.files_url().join("foo").unwrap())
       .await
@@ -224,7 +224,7 @@ fn configuring_paid_without_base_price_returns_error() {
 #[test]
 fn returns_404_for_made_up_invoice() {
   let stderr = test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("test-filename", "");
     assert_eq!(
       reqwest::get(
@@ -246,7 +246,7 @@ fn returns_404_for_made_up_invoice() {
 #[test]
 fn returns_404_for_made_up_invoice_qr_code() {
   let stderr = test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("test-filename", "");
     assert_eq!(
       reqwest::get(
@@ -289,7 +289,7 @@ fn warns_when_lnd_is_unreachable_at_startup() {
 fn inherits_access_configuration() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
     context.write("dir/foo", "");
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     let response = get(&context.files_url().join("dir/foo").unwrap()).await;
     let regex = Regex::new(r"^/files/dir/foo\?invoice=[a-f0-9]{64}$").unwrap();
     let path_and_query = format!(
@@ -310,7 +310,7 @@ fn relative_links_in_paid_files() {
   let receiver = LndTestContext::new_blocking();
   test_with_lnd(&receiver.clone(), |context| async move {
     context.write("free.txt", "content");
-    context.write("paid/.agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write("paid/.opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("paid/file.html", r#"<a href="../free.txt">link</a>"#);
     let response = get(&context.files_url().join("paid/file.html").unwrap()).await;
     let invoice_url = response.url().clone();
@@ -346,7 +346,7 @@ fn request_path_must_match_invoice_path() {
   let stderr = test_with_lnd(&receiver.clone(), |context| async move {
     context.write("exists", "precious content");
     context.write("also-exists", "precious content");
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
 
     assert_bad_request(&context, "/files/does-not-exist").await;
     assert_bad_request(&context, "/files/also-exists").await;
@@ -374,7 +374,7 @@ fn payment_request_memo_decodes_percent() {
   use lightning_invoice::{Invoice, InvoiceDescription};
 
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("file.with.dots", "");
     let html = html(&context.files_url().join("file%2Ewith%2Edots").unwrap()).await;
     guard_unwrap!(let &[payment_request] = css_select(&html, ".payment-request").as_slice());
@@ -393,7 +393,7 @@ fn payment_request_memo_decodes_percent() {
 fn filenames_with_percent_encoding() {
   let receiver = LndTestContext::new_blocking();
   test_with_lnd(&receiver.clone(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("foo%20bar", "contents");
     context.write("%80", "contents");
 

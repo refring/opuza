@@ -26,7 +26,7 @@ impl Config {
       if !path.starts_with(base_directory) {
         break;
       }
-      let file_path = path.join(".agora.yaml");
+      let file_path = path.join(".opuza.yaml");
       match fs::read_to_string(&file_path) {
         Ok(yaml) => {
           let parent =
@@ -75,7 +75,7 @@ mod tests {
   #[test]
   fn loads_config_from_files() {
     let temp_dir = TempDir::new().unwrap();
-    fs::write(temp_dir.path().join(".agora.yaml"), "paid: true").unwrap();
+    fs::write(temp_dir.path().join(".opuza.yaml"), "paid: true").unwrap();
     let config = Config::for_dir(temp_dir.path(), temp_dir.path()).unwrap();
     assert_eq!(
       config,
@@ -100,36 +100,36 @@ mod tests {
   #[test]
   fn io_error_when_reading_config_file() {
     let temp_dir = TempDir::new().unwrap();
-    fs::create_dir(temp_dir.path().join(".agora.yaml")).unwrap();
+    fs::create_dir(temp_dir.path().join(".opuza.yaml")).unwrap();
     let result = Config::for_dir(temp_dir.path(), temp_dir.path());
     assert_matches!(
       result,
       Err(Error::FilesystemIo { path, .. })
-        if path == temp_dir.path().join(".agora.yaml")
+        if path == temp_dir.path().join(".opuza.yaml")
     );
   }
 
   #[test]
   fn invalid_config() {
     let temp_dir = TempDir::new().unwrap();
-    fs::write(temp_dir.path().join(".agora.yaml"), "{{{").unwrap();
+    fs::write(temp_dir.path().join(".opuza.yaml"), "{{{").unwrap();
     let result = Config::for_dir(temp_dir.path(), temp_dir.path());
     assert_matches!(
       result,
       Err(Error::ConfigDeserialize { path, .. })
-        if path == temp_dir.path().join(".agora.yaml")
+        if path == temp_dir.path().join(".opuza.yaml")
     );
   }
 
   #[test]
   fn unknown_fields() {
     let temp_dir = TempDir::new().unwrap();
-    fs::write(temp_dir.path().join(".agora.yaml"), "unknown_field: foo").unwrap();
+    fs::write(temp_dir.path().join(".opuza.yaml"), "unknown_field: foo").unwrap();
     let result = Config::for_dir(temp_dir.path(), temp_dir.path());
     assert_matches!(
       result,
       Err(Error::ConfigDeserialize { path, source, .. })
-        if path == temp_dir.path().join(".agora.yaml")
+        if path == temp_dir.path().join(".opuza.yaml")
            && source.to_string().contains("unknown field `unknown_field`")
     );
   }
@@ -137,7 +137,7 @@ mod tests {
   #[test]
   fn paid_is_optional() {
     let temp_dir = TempDir::new().unwrap();
-    fs::write(temp_dir.path().join(".agora.yaml"), "{}").unwrap();
+    fs::write(temp_dir.path().join(".opuza.yaml"), "{}").unwrap();
     let config = Config::for_dir(temp_dir.path(), temp_dir.path()).unwrap();
     assert_eq!(config, Config::default());
   }
@@ -150,7 +150,7 @@ mod tests {
       base-price: 3 XMR
     "
     .unindent();
-    fs::write(temp_dir.path().join(".agora.yaml"), yaml).unwrap();
+    fs::write(temp_dir.path().join(".opuza.yaml"), yaml).unwrap();
     let config = Config::for_dir(temp_dir.path(), temp_dir.path()).unwrap();
     assert_eq!(config.base_price, Some(Piconero::new(3_000_000_000_000)));
   }
@@ -159,7 +159,7 @@ mod tests {
   fn inherits_config() {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
-      temp_dir.path().join(".agora.yaml"),
+      temp_dir.path().join(".opuza.yaml"),
       "{paid: true, base-price: 1.5 XMR}",
     )
     .unwrap();
@@ -178,12 +178,12 @@ mod tests {
   fn override_paid() {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
-      temp_dir.path().join(".agora.yaml"),
+      temp_dir.path().join(".opuza.yaml"),
       "{paid: true, base-price: 1 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
-    fs::write(temp_dir.path().join("dir/.agora.yaml"), "paid: false").unwrap();
+    fs::write(temp_dir.path().join("dir/.opuza.yaml"), "paid: false").unwrap();
     let config = Config::for_dir(temp_dir.path(), &temp_dir.path().join("dir")).unwrap();
     assert_eq!(
       config,
@@ -198,12 +198,12 @@ mod tests {
   fn override_base_price() {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
-      temp_dir.path().join(".agora.yaml"),
+      temp_dir.path().join(".opuza.yaml"),
       "{paid: true, base-price: 3 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
-    fs::write(temp_dir.path().join("dir/.agora.yaml"), "base-price: 1 XMR").unwrap();
+    fs::write(temp_dir.path().join("dir/.opuza.yaml"), "base-price: 1 XMR").unwrap();
     let config = Config::for_dir(temp_dir.path(), &temp_dir.path().join("dir")).unwrap();
     assert_eq!(
       config,
@@ -218,13 +218,13 @@ mod tests {
   fn does_not_read_configs_in_subdirectories() {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
-      temp_dir.path().join(".agora.yaml"),
+      temp_dir.path().join(".opuza.yaml"),
       "{paid: true, base-price: 0.001 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("dir")).unwrap();
     fs::write(
-      temp_dir.path().join("dir/.agora.yaml"),
+      temp_dir.path().join("dir/.opuza.yaml"),
       "base-price: 0.002 XMR",
     )
     .unwrap();
@@ -243,13 +243,13 @@ mod tests {
     let temp_dir = TempDir::new().unwrap();
     fs::create_dir(temp_dir.path().join("foo")).unwrap();
     fs::write(
-      temp_dir.path().join("foo/.agora.yaml"),
+      temp_dir.path().join("foo/.opuza.yaml"),
       "{paid: true, base-price: 1 XMR}",
     )
     .unwrap();
     fs::create_dir(temp_dir.path().join("bar")).unwrap();
     fs::write(
-      temp_dir.path().join("bar/.agora.yaml"),
+      temp_dir.path().join("bar/.opuza.yaml"),
       "{paid: true, base-price: 2 XMR}",
     )
     .unwrap();
@@ -267,7 +267,7 @@ mod tests {
   fn does_not_read_configs_from_outside_the_root() {
     let temp_dir = TempDir::new().unwrap();
     fs::write(
-      temp_dir.path().join(".agora.yaml"),
+      temp_dir.path().join(".opuza.yaml"),
       "{paid: true, base-price: 2 XMR}",
     )
     .unwrap();

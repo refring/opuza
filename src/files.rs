@@ -8,13 +8,13 @@ use {
 #[derive(Clone, Debug)]
 pub(crate) struct Files {
   vfs: Vfs,
-  rpc_client: Option<agora_monero_client::MoneroRpcClient>,
+  rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
 }
 
 impl Files {
   pub(crate) fn new(
     base_directory: InputPath,
-    rpc_client: Option<agora_monero_client::MoneroRpcClient>,
+    rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
   ) -> Self {
     Self {
       vfs: Vfs::new(base_directory),

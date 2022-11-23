@@ -16,20 +16,20 @@ mod piconero;
 #[cfg(test)]
 use {lnd_test_context::LndTestContext, std::sync::Arc};
 
-impl From<Address> for AddAgoraInvoiceResponse {
+impl From<Address> for AddOpuzaInvoiceResponse {
   fn from(address: Address) -> Self {
     let address_bytes = address.as_bytes();
-    AddAgoraInvoiceResponse {
+    AddOpuzaInvoiceResponse {
       payment_hash: hex::encode(sha256(&address_bytes)),
     }
   }
 }
 
-impl From<SubaddressData> for AgoraInvoice {
+impl From<SubaddressData> for OpuzaInvoice {
   fn from(item: SubaddressData) -> Self {
-    let monero_invoice: AgoraInvoice = serde_json::from_str(&item.label).unwrap();
+    let monero_invoice: OpuzaInvoice = serde_json::from_str(&item.label).unwrap();
 
-    AgoraInvoice {
+    OpuzaInvoice {
       value: monero_invoice.value,
       is_settled: monero_invoice.is_settled,
       memo: monero_invoice.memo,
@@ -60,14 +60,14 @@ impl MoneroRpcClient {
     }
   }
 
-  pub async fn ping(&self) -> Result<(), AgoraRpcError> {
+  pub async fn ping(&self) -> Result<(), OpuzaRpcError> {
     let daemon_client = RpcClient::new(self.inner.clone());
     // let daemon_rpc = daemon_client.daemon_rpc();
     let daemon = daemon_client.wallet();
 
     let block_height = daemon.get_height().await;
 
-    block_height.map_err(|_| AgoraRpcError)?;
+    block_height.map_err(|_| OpuzaRpcError)?;
 
     Ok(())
   }
@@ -76,15 +76,15 @@ impl MoneroRpcClient {
     &self,
     memo: &str,
     value: Piconero,
-  ) -> Result<AddAgoraInvoiceResponse, AgoraRpcError> {
+  ) -> Result<AddOpuzaInvoiceResponse, OpuzaRpcError> {
     let daemon_client = RpcClient::new(self.inner.clone());
     let wallet_rpc = daemon_client.wallet();
 
     let block_height = wallet_rpc.get_height().await;
 
-    block_height.map_err(|_| AgoraRpcError)?;
+    block_height.map_err(|_| OpuzaRpcError)?;
 
-    let mut monero_invoice = AgoraInvoice {
+    let mut monero_invoice = OpuzaInvoice {
       value: value.value(),
       memo: memo.to_owned(),
       payment_hash: String::from(""),
@@ -95,9 +95,9 @@ impl MoneroRpcClient {
     let (address, index) = wallet_rpc
       .create_address(0, Some(serde_json::to_string(&monero_invoice).unwrap()))
       .await
-      .map_err(|_| AgoraRpcError)?;
+      .map_err(|_| OpuzaRpcError)?;
 
-    let cln_inv: AddAgoraInvoiceResponse = address.into();
+    let cln_inv: AddOpuzaInvoiceResponse = address.into();
 
     // The invoice id is based on the Monero subaddress
     monero_invoice.payment_hash = cln_inv.payment_hash.clone();
@@ -117,7 +117,7 @@ impl MoneroRpcClient {
         label,
       )
       .await
-      .map_err(|_| AgoraRpcError)?;
+      .map_err(|_| OpuzaRpcError)?;
 
     Ok(cln_inv as _)
   }
@@ -125,7 +125,7 @@ impl MoneroRpcClient {
   pub async fn lookup_invoice(
     &self,
     r_hash: [u8; 32],
-  ) -> Result<Option<AgoraInvoice>, AgoraRpcError> {
+  ) -> Result<Option<OpuzaInvoice>, OpuzaRpcError> {
     let payment_hash_hex = hex::encode(&r_hash);
 
     let daemon_client = RpcClient::new(self.inner.clone());
@@ -141,9 +141,9 @@ impl MoneroRpcClient {
       .filter(|x| x.label.contains(&payment_hash_hex))
       .collect();
 
-    let sub_address = sub_address_data.get(0).ok_or_else(|| AgoraRpcError);
+    let sub_address = sub_address_data.get(0).ok_or_else(|| OpuzaRpcError);
 
-    let cln_inv: AgoraInvoice = sub_address?.clone().into();
+    let cln_inv: OpuzaInvoice = sub_address?.clone().into();
 
     println!("lookup invoice {:?}", cln_inv);
 
@@ -171,12 +171,12 @@ impl MoneroRpcClient {
         let address = wallet_rpc.get_address(0, Some(address_filter)).await;
 
         let address_tmp = address.unwrap();
-        let sub_address = address_tmp.addresses.get(0).ok_or_else(|| AgoraRpcError);
-        let cln_inv: AgoraInvoice = sub_address.clone().unwrap().clone().into();
+        let sub_address = address_tmp.addresses.get(0).ok_or_else(|| OpuzaRpcError);
+        let cln_inv: OpuzaInvoice = sub_address.clone().unwrap().clone().into();
         println!("Invoice: {:?}", cln_inv);
 
         if transfer.double_spend_seen == false && transfer.amount.as_pico() >= cln_inv.value {
-          let mut monero_invoice: AgoraInvoice =
+          let mut monero_invoice: OpuzaInvoice =
             serde_json::from_str(&sub_address.unwrap().label).unwrap();
           monero_invoice.is_settled = true;
           // Save the metadata we need later on as serialized data in the wallet
@@ -188,7 +188,7 @@ impl MoneroRpcClient {
           let _result = wallet_rpc
             .label_address(index, label)
             .await
-            .map_err(|_| AgoraRpcError);
+            .map_err(|_| OpuzaRpcError);
         }
       }
     }
@@ -196,7 +196,7 @@ impl MoneroRpcClient {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AgoraInvoice {
+pub struct OpuzaInvoice {
   pub value: u64,
   pub is_settled: bool,
   pub memo: String,
@@ -229,20 +229,20 @@ where
 }
 
 #[derive(Debug, Clone)]
-pub struct AddAgoraInvoiceResponse {
+pub struct AddOpuzaInvoiceResponse {
   pub payment_hash: String,
 }
 
 #[derive(Debug, Clone)]
-pub struct AgoraRpcError;
+pub struct OpuzaRpcError;
 
-impl fmt::Display for AgoraRpcError {
+impl fmt::Display for OpuzaRpcError {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "failed Monero node request")
   }
 }
 
-impl Error for AgoraRpcError {
+impl Error for OpuzaRpcError {
   fn description(&self) -> &str {
     // TODO: replace with actual description from error status.
     "failed Monero node request"

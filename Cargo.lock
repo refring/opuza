@@ -78,96 +78,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "agora"
-version = "0.1.2"
-dependencies = [
- "agora-monero-client",
- "agora-test-context",
- "bardecoder",
- "chromiumoxide",
- "color-backtrace",
- "env_logger",
- "executable-path",
- "form_urlencoded",
- "futures",
- "guard",
- "hex",
- "http",
- "hyper",
- "image",
- "lexiclean",
- "lnd-test-context",
- "log",
- "maud",
- "mime_guess",
- "nix",
- "openssl",
- "percent-encoding",
- "pin-project",
- "pretty_assertions 1.3.0",
- "pulldown-cmark",
- "qrcodegen",
- "rcgen",
- "regex",
- "reqwest",
- "resvg",
- "rust-embed",
- "rustls-acme",
- "scraper",
- "serde",
- "serde_yaml",
- "snafu",
- "structopt",
- "tempfile",
- "termcolor",
- "tiny-skia",
- "tokio",
- "tokio-rustls 0.22.0",
- "tokio-stream",
- "tower",
- "unindent",
- "usvg",
- "uuid",
-]
-
-[[package]]
-name = "agora-monero-client"
-version = "0.0.3"
-dependencies = [
- "async-trait",
- "dyn-clone",
- "hex",
- "http",
- "hyper",
- "hyper-openssl",
- "lnd-test-context",
- "monero",
- "monero-rpc",
- "num-format",
- "openssl",
- "pretty_assertions 0.7.2",
- "prost",
- "regex",
- "serde",
- "serde_json",
- "serde_yaml",
- "tokio",
- "tonic",
- "tonic-build",
- "tower",
-]
-
-[[package]]
-name = "agora-test-context"
-version = "0.0.0"
-dependencies = [
- "executable-path",
- "reqwest",
- "scraper",
- "tempfile",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "0.7.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2502,6 +2412,96 @@ dependencies = [
  "openssl-src",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "opuza"
+version = "0.1.2"
+dependencies = [
+ "bardecoder",
+ "chromiumoxide",
+ "color-backtrace",
+ "env_logger",
+ "executable-path",
+ "form_urlencoded",
+ "futures",
+ "guard",
+ "hex",
+ "http",
+ "hyper",
+ "image",
+ "lexiclean",
+ "lnd-test-context",
+ "log",
+ "maud",
+ "mime_guess",
+ "nix",
+ "openssl",
+ "opuza-monero-client",
+ "opuza-test-context",
+ "percent-encoding",
+ "pin-project",
+ "pretty_assertions 1.3.0",
+ "pulldown-cmark",
+ "qrcodegen",
+ "rcgen",
+ "regex",
+ "reqwest",
+ "resvg",
+ "rust-embed",
+ "rustls-acme",
+ "scraper",
+ "serde",
+ "serde_yaml",
+ "snafu",
+ "structopt",
+ "tempfile",
+ "termcolor",
+ "tiny-skia",
+ "tokio",
+ "tokio-rustls 0.22.0",
+ "tokio-stream",
+ "tower",
+ "unindent",
+ "usvg",
+ "uuid",
+]
+
+[[package]]
+name = "opuza-monero-client"
+version = "0.0.3"
+dependencies = [
+ "async-trait",
+ "dyn-clone",
+ "hex",
+ "http",
+ "hyper",
+ "hyper-openssl",
+ "lnd-test-context",
+ "monero",
+ "monero-rpc",
+ "num-format",
+ "openssl",
+ "pretty_assertions 0.7.2",
+ "prost",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tower",
+]
+
+[[package]]
+name = "opuza-test-context"
+version = "0.0.0"
+dependencies = [
+ "executable-path",
+ "reqwest",
+ "scraper",
+ "tempfile",
 ]
 
 [[package]]

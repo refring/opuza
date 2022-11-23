@@ -16,7 +16,7 @@ pub(crate) struct Arguments {
   pub(crate) acme_cache_directory: Option<PathBuf>,
   #[structopt(
     long,
-    help = "Request TLS certificate for <acme-domain>. This agora instance must be reachable at <acme-domain>:443 to respond to Let's Encrypt ACME challenges."
+    help = "Request TLS certificate for <acme-domain>. This opuza instance must be reachable at <acme-domain>:443 to respond to Let's Encrypt ACME challenges."
   )]
   pub(crate) acme_domain: Vec<String>,
   #[structopt(
@@ -81,7 +81,7 @@ mod tests {
   fn https_redirect_port_requires_https_port() {
     assert_contains(
       &Arguments::from_iter_safe(&[
-        "agora",
+        "opuza",
         "--directory=www",
         "--https-redirect-port=0",
         "--http-port=0",
@@ -101,7 +101,7 @@ mod tests {
   #[test]
   fn https_port_requires_acme_cache_directory() {
     assert_contains(
-      &Arguments::from_iter_safe(&["agora", "--directory=www", "--https-port=0"])
+      &Arguments::from_iter_safe(&["opuza", "--directory=www", "--https-port=0"])
         .unwrap_err()
         .to_string(),
       &"
@@ -116,7 +116,7 @@ mod tests {
   fn https_port_requires_acme_domain() {
     assert_contains(
       &Arguments::from_iter_safe(&[
-        "agora",
+        "opuza",
         "--directory=www",
         "--https-port=0",
         "--acme-cache-directory=cache",
@@ -134,7 +134,7 @@ mod tests {
   #[test]
   fn require_at_least_one_port_argument() {
     assert_contains(
-      &Arguments::from_iter_safe(&["agora", "--directory=www"])
+      &Arguments::from_iter_safe(&["opuza", "--directory=www"])
         .unwrap_err()
         .to_string(),
       &"

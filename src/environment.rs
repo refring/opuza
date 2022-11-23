@@ -22,13 +22,13 @@ impl Environment {
   #[cfg(test)]
   pub(crate) fn test() -> Self {
     let tempdir = tempfile::Builder::new()
-      .prefix("agora-test")
+      .prefix("opuza-test")
       .tempdir()
       .unwrap();
 
     Environment {
       arguments: vec![
-        "agora".into(),
+        "opuza".into(),
         "--address=localhost".into(),
         "--http-port=0".into(),
         "--directory=www".into(),

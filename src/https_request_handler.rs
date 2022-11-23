@@ -26,7 +26,7 @@ impl HttpsRequestHandler {
     arguments: &Arguments,
     acme_cache_directory: &Path,
     https_port: u16,
-    rpc_client: Option<agora_monero_client::MoneroRpcClient>,
+    rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
   ) -> Result<HttpsRequestHandler> {
     let request_handler = RequestHandler::new(environment, &arguments.directory, rpc_client);
     let socket_addr = (arguments.address.as_str(), https_port)

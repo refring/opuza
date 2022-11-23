@@ -112,7 +112,7 @@ fn bugfix_symlink_with_relative_base_directory() {
   environment.working_directory = working_directory;
 
   environment.arguments = vec![
-    "agora".into(),
+    "opuza".into(),
     "--address=localhost".into(),
     "--http-port=0".into(),
     "--directory=../www".into(),

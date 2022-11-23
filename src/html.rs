@@ -11,7 +11,7 @@ pub(crate) fn wrap_body(title_slug: &str, body: Markup) -> Response<Body> {
         meta charset="utf-8";
         meta name="viewport" content="width=device-width, initial-scale=1";
         title {
-          (format!("{} · Agora", title_slug))
+          (format!("{} · Opuza", title_slug))
         }
         link rel="stylesheet" href="/static/index.css";
         script type="module" src="/static/index.js" {}
@@ -22,11 +22,11 @@ pub(crate) fn wrap_body(title_slug: &str, body: Markup) -> Response<Body> {
         }
         footer {
           "Powered by "
-          a href="https://github.com/agora-org/agora" {
-            "Agora"
+          a href="https://github.com/refactor-ring/opuza" {
+            "Opuza"
           }
           ". Have questions? Join us on "
-          a href="https://t.me/agoradiscussion" {
+          a href="https://t.me/opuzadiscussion" {
             "Telegram"
           }
           "."

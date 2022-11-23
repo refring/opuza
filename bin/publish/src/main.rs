@@ -7,7 +7,7 @@ use {
 struct Arguments {
   revision: String,
   #[structopt(long)]
-  publish_agora_monero_client: bool,
+  publish_opuza_monero_client: bool,
 }
 
 fn main() {
@@ -18,12 +18,12 @@ fn main() {
   (
     "git",
     "clone",
-    "git@github.com:agora-org/agora.git",
+    "git@github.com:refactor-ring/opuza.git",
     CurrentDir(tempdir.path()),
   )
     .run();
 
-  env::set_current_dir(tempdir.path().join("agora")).unwrap();
+  env::set_current_dir(tempdir.path().join("opuza")).unwrap();
 
   (
     "git",
@@ -41,7 +41,7 @@ fn main() {
   let version = metadata
     .packages
     .into_iter()
-    .filter(|package| package.name == "agora")
+    .filter(|package| package.name == "opuza")
     .next()
     .unwrap()
     .version;
@@ -58,8 +58,8 @@ fn main() {
 
   ("git", "push", "origin", &version.to_string()).run();
 
-  if arguments.publish_agora_monero_client {
-    ("cargo", "publish", CurrentDir("agora-monero-client")).run();
+  if arguments.publish_opuza_monero_client {
+    ("cargo", "publish", CurrentDir("opuza-monero-client")).run();
   }
 
   ("cargo", "publish").run();

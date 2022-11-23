@@ -13,7 +13,6 @@ pub(crate) use {
     server::Server,
     stderr::Stderr,
   },
-  agora_monero_client::Piconero,
   futures::{
     future::{BoxFuture, OptionFuture},
     FutureExt, Stream, StreamExt,
@@ -27,6 +26,7 @@ pub(crate) use {
   },
   lexiclean::Lexiclean,
   maud::Markup,
+  opuza_monero_client::Piconero,
   serde::Deserialize,
   snafu::{IntoError, ResultExt},
   std::{

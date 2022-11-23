@@ -1,12 +1,12 @@
 [package]
-name = "agora-monero-client"
+name = "opuza-monero-client"
 version = "0.0.3"
-description = "Agora Monero client library"
-authors = ["Casey Rodarmor <casey@rodarmor.com>", "Sönke Hahn <soenkehahn@gmail.com>"]
+description = "Opuza Monero client library"
+authors = ["refactor-ring <refactor_ring0@proton.me>"]
 edition = "2018"
 license = "CC0-1.0"
-repository = "https://github.com/soenkehahn/agora"
-homepage = "https://github.com/soenkehahn/agora"
+repository = "https://github.com/refactor-ring/opuza"
+homepage = "https://github.com/refactor-ring/opuza"
 
 [lib]
 doctest = false

@@ -10,7 +10,7 @@ impl RequestHandler {
   pub(crate) fn new(
     environment: &Environment,
     base_directory: &Path,
-    rpc_client: Option<agora_monero_client::MoneroRpcClient>,
+    rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
   ) -> Self {
     Self {
       stderr: environment.stderr.clone(),

@@ -4,7 +4,7 @@ set -euxo pipefail
 
 VERSION=`basename $REF`
 DIST=`pwd`/dist
-BIN=agora
+BIN=opuza
 
 echo "Packaging $BIN $VERSION for $TARGET..."
 

@@ -8,7 +8,7 @@ RUN cargo build --release
 
 FROM debian:buster-slim
 
-COPY --from=builder /app/target/release/agora /usr/local/bin/agora
+COPY --from=builder /app/target/release/opuza /usr/local/bin/opuza
 
 COPY "entrypoint.sh" .
 RUN chmod +x entrypoint.sh

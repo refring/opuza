@@ -95,7 +95,7 @@ impl Server {
   async fn setup_rpc_client(
     environment: &mut Environment,
     arguments: &Arguments,
-  ) -> Result<Option<agora_monero_client::MoneroRpcClient>> {
+  ) -> Result<Option<opuza_monero_client::MoneroRpcClient>> {
     if let Some(monero_rpc_address) = &arguments.monero_rpc_address {
       println!("Setting up Monero rpc");
       let client = Self::setup_monero_client(monero_rpc_address.clone()).await?;
@@ -120,8 +120,8 @@ impl Server {
 
   async fn setup_monero_client(
     monero_rpc_address: String,
-  ) -> Result<agora_monero_client::MoneroRpcClient> {
-    let client = agora_monero_client::MoneroRpcClient::new(monero_rpc_address).await;
+  ) -> Result<opuza_monero_client::MoneroRpcClient> {
+    let client = opuza_monero_client::MoneroRpcClient::new(monero_rpc_address).await;
 
     Ok(client)
   }
@@ -271,7 +271,7 @@ mod tests {
   fn address_resolution_failure_error() {
     let mut environment = Environment::test();
     environment.arguments = vec![
-      "agora".into(),
+      "opuza".into(),
       "--address=host.invalid".into(),
       "--http-port=0".into(),
       "--directory=www".into(),

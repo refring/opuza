@@ -1,7 +1,7 @@
 use {
   crate::common::*,
-  agora_monero_client::AgoraRpcError,
   color_backtrace::BacktracePrinter,
+  opuza_monero_client::OpuzaRpcError,
   snafu::{ErrorCompat, Snafu},
   std::{path::MAIN_SEPARATOR, str::Utf8Error},
   structopt::clap,
@@ -55,8 +55,8 @@ pub(crate) enum Error {
   #[snafu(display("Forbidden access to hidden file: {}", path.display()))]
   HiddenFileAccess { backtrace: Backtrace, path: PathBuf },
   #[snafu(display(
-    "Internal error, this is probably a bug in agora: {}\n\
-      Consider filing an issue: https://github.com/soenkehahn/agora/issues/new/",
+    "Internal error, this is probably a bug in opuza: {}\n\
+      Consider filing an issue: https://github.com/refactor-ring/opuza/issues/new/",
     message
   ))]
   Internal {
@@ -116,7 +116,7 @@ pub(crate) enum Error {
   #[snafu(display("LND RPC call failed: {}", source))]
   LndRpcStatus {
     backtrace: Backtrace,
-    source: AgoraRpcError,
+    source: OpuzaRpcError,
   },
   #[snafu(display(
     "Payment request `{}` too long for QR code: {}",
@@ -239,7 +239,7 @@ pub(crate) struct Backtrace {
 impl snafu::GenerateBacktrace for Backtrace {
   fn generate() -> Self {
     Self {
-      inner: if cfg!(test) || env::var_os("AGORA_SUPPRESS_BACKTRACE").is_some() {
+      inner: if cfg!(test) || env::var_os("OPUZA_SUPPRESS_BACKTRACE").is_some() {
         None
       } else {
         Some(snafu::Backtrace::generate())

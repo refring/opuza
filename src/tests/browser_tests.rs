@@ -93,7 +93,7 @@ fn copy_payment_request_to_clipboard() {
       "--acme-domain=localhost",
     ],
     |context| async move {
-      context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+      context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
       context.write("foo", "precious content");
 
       let browser = Browser::new().await;
@@ -156,7 +156,7 @@ fn copy_payment_request_to_clipboard() {
 #[test]
 fn clipboard_copy_button_does_not_appear_over_http() {
   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
     context.write("foo", "precious content");
 
     let browser = Browser::new().await;

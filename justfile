@@ -28,7 +28,7 @@ forbid:
   ./bin/forbid
 
 check-lockfile:
-  cargo update --locked --package agora
+  cargo update --locked --package opuza
 
 watch +command='ltest':
   cargo watch --clear --exec '{{command}}'
@@ -42,7 +42,7 @@ publish revision:
 clean-binaries:
   rm -rf target/bitcoin* target/ln*
 
-run example-files='example-files' domain='test.agora.download' network='testnet':
+run example-files='example-files' domain='test.opuza.download' network='testnet':
   cargo lcheck
   scp root@{{domain}}:/var/lib/lnd/tls.cert target/tls.cert
   scp root@{{domain}}:/var/lib/lnd/data/chain/bitcoin/{{network}}/invoice.macaroon target/invoice.macaroon
@@ -84,4 +84,4 @@ scrape-website:
     --mirror \
     --no-host-directories \
     --page-requisites \
-    https://agora.download/
+    https://opuza.download/

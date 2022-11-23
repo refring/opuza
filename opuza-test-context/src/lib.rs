@@ -11,7 +11,7 @@ use {
   tempfile::TempDir,
 };
 
-pub struct AgoraTestContext {
+pub struct OpuzaTestContext {
   base_url: Url,
   child: Child,
   collected_stderr: String,
@@ -22,7 +22,7 @@ pub struct AgoraTestContext {
   tempdir: TempDir,
 }
 
-impl AgoraTestContext {
+impl OpuzaTestContext {
   pub fn base_url(&self) -> &Url {
     &self.base_url
   }
@@ -148,8 +148,8 @@ impl Builder {
     Self { backtraces, ..self }
   }
 
-  pub fn build(self) -> AgoraTestContext {
-    let mut command = Command::new(executable_path("agora"));
+  pub fn build(self) -> OpuzaTestContext {
+    let mut command = Command::new(executable_path("opuza"));
 
     let current_dir = if let Some(current_dir) = self.current_dir {
       self.tempdir.path().join(current_dir)
@@ -179,7 +179,7 @@ impl Builder {
       .stderr(Stdio::piped());
 
     if !self.backtraces {
-      command.env("AGORA_SUPPRESS_BACKTRACE", "");
+      command.env("OPUZA_SUPPRESS_BACKTRACE", "");
     }
 
     let mut child = dbg!(command).spawn().unwrap();
@@ -208,7 +208,7 @@ impl Builder {
 
     let files_url = base_url.join("files/").unwrap();
 
-    AgoraTestContext {
+    OpuzaTestContext {
       base_url,
       child,
       collected_stderr: first_line,

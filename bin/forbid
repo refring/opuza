@@ -5,6 +5,5 @@ set -euxo pipefail
 which rg
 ! rg \
   --glob !bin/forbid \
-  --glob !agora-lnd-client/proto/rpc.proto \
   --ignore-case \
   'dbg!|fixme|#\[ignore\]|todo|xxx'
