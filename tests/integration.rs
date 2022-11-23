@@ -643,7 +643,7 @@ fn ignores_access_config_outside_of_base_directory() {
 fn paid_files_dont_have_download_button() {
   #![allow(clippy::unused_unit)]
   let context = AgoraTestContext::builder().build();
-  context.write(".agora.yaml", "{paid: true, base-price: 1000 sat}");
+  context.write(".agora.yaml", "{paid: true, base-price: 10 XMR}");
   context.write("foo", "foo");
   let html = context.html("files/");
   guard_unwrap!(let &[] = css_select(&html, ".listing a[download]").as_slice());

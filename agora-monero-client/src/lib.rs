@@ -6,7 +6,6 @@ use monero_rpc::{GetTransfersCategory, GetTransfersSelector, RpcClient, Subaddre
 use openssl::sha::sha256;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
-use serde::de::Visitor;
 use {core::fmt::Debug, std::error::Error, std::fmt};
 
 pub use piconero::Piconero;
@@ -165,37 +164,34 @@ impl MoneroRpcClient {
 
     let transfers = wallet_rpc.get_transfers(transfer_selector).await;
 
-    if let Some(transfers) = transfers
-        .unwrap()
-        .get(&GetTransfersCategory::In) {
-        for transfer in transfers.iter() {
-          println!("Transfer: {:?}", transfer);
-          let address_filter = vec![transfer.subaddr_index.minor];
-          let address = wallet_rpc.get_address(0, Some(address_filter)).await;
+    if let Some(transfers) = transfers.unwrap().get(&GetTransfersCategory::In) {
+      for transfer in transfers.iter() {
+        println!("Transfer: {:?}", transfer);
+        let address_filter = vec![transfer.subaddr_index.minor];
+        let address = wallet_rpc.get_address(0, Some(address_filter)).await;
 
-          let address_tmp = address.unwrap();
-          let sub_address = address_tmp.addresses.get(0).ok_or_else(|| AgoraRpcError);
-          let cln_inv: AgoraInvoice = sub_address.clone().unwrap().clone().into();
-          println!("Invoice: {:?}", cln_inv);
+        let address_tmp = address.unwrap();
+        let sub_address = address_tmp.addresses.get(0).ok_or_else(|| AgoraRpcError);
+        let cln_inv: AgoraInvoice = sub_address.clone().unwrap().clone().into();
+        println!("Invoice: {:?}", cln_inv);
 
-          if transfer.double_spend_seen == false && transfer.amount.as_pico() >= cln_inv.value {
-            let mut monero_invoice: AgoraInvoice =
-                serde_json::from_str(&sub_address.unwrap().label).unwrap();
-            monero_invoice.is_settled = true;
-            // Save the metadata we need later on as serialized data in the wallet
-            let label = serde_json::to_string(&monero_invoice).unwrap();
-            let index = Index {
-              major: 0,
-              minor: transfer.subaddr_index.minor.clone(),
-            };
-            let _result = wallet_rpc
-                .label_address(index, label)
-                .await
-                .map_err(|_| AgoraRpcError);
-          }
+        if transfer.double_spend_seen == false && transfer.amount.as_pico() >= cln_inv.value {
+          let mut monero_invoice: AgoraInvoice =
+            serde_json::from_str(&sub_address.unwrap().label).unwrap();
+          monero_invoice.is_settled = true;
+          // Save the metadata we need later on as serialized data in the wallet
+          let label = serde_json::to_string(&monero_invoice).unwrap();
+          let index = Index {
+            major: 0,
+            minor: transfer.subaddr_index.minor.clone(),
+          };
+          let _result = wallet_rpc
+            .label_address(index, label)
+            .await
+            .map_err(|_| AgoraRpcError);
         }
+      }
     }
-
   }
 }
 
@@ -209,22 +205,27 @@ pub struct AgoraInvoice {
 }
 
 pub fn buffer_to_hex<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
-  where T: AsRef<[u8]>,
-        S: Serializer
+where
+  T: AsRef<[u8]>,
+  S: Serializer,
 {
   serializer.serialize_str(&hex::encode(&buffer.as_ref()))
 }
 
 /// Deserializes a lowercase hex string to a `Vec<u8>`.
 pub fn hex_to_buffer<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
-  where D: Deserializer<'de>
+where
+  D: Deserializer<'de>,
 {
   use serde::de::Error;
 
-  let mut bytes: [u8; 32] = [0;32];
+  let mut bytes: [u8; 32] = [0; 32];
 
-  String::deserialize(deserializer)
-      .and_then(|string| { hex::decode_to_slice(&string, &mut bytes as &mut [u8]).map_err(|err| Error::custom(err.to_string()))?; Ok(bytes)})
+  String::deserialize(deserializer).and_then(|string| {
+    hex::decode_to_slice(&string, &mut bytes as &mut [u8])
+      .map_err(|err| Error::custom(err.to_string()))?;
+    Ok(bytes)
+  })
 }
 
 #[derive(Debug, Clone)]

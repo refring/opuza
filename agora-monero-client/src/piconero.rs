@@ -171,7 +171,7 @@ mod tests {
   }
 
   #[test]
-  fn display_xmr_with_comma() {
+  fn display_xmr_with_comma_and_decimal_separator() {
     assert_eq!(
       Piconero::new(1_000_123_000_000_000).to_string(),
       "1,000.123 XMR"
