@@ -81,6 +81,7 @@ pub(crate) fn set_up_test_certificate() -> (TempDir, Certificate) {
 pub(crate) async fn https_client(context: &TestContext, root_certificate: Certificate) -> Client {
   let client = ClientBuilder::new()
     .add_root_certificate(root_certificate)
+    .danger_accept_invalid_certs(true)
     .build()
     .unwrap();
 
