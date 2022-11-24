@@ -242,7 +242,7 @@ impl Files {
             }
 
             div class="links" {
-              a class="payment-link" href={"monero:" (invoice.payment_request)} {
+              a class="payment-link" href={(invoice.payment_request)} {
                 "Open invoice in wallet"
               }
               a class="reload-link" href=(request.uri()) {
