@@ -2,6 +2,7 @@
 
 use ::monero::cryptonote::subaddress::Index;
 use ::monero::Address;
+use hex::FromHex;
 use monero_rpc::{GetTransfersCategory, GetTransfersSelector, RpcClient, SubaddressData};
 use openssl::sha::sha256;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -106,6 +107,15 @@ impl MoneroRpcClient {
       address, monero_invoice.value, monero_invoice.memo
     );
 
+    // Save the payment hash as an attribute with the address as a value so we can lookup easier later
+    wallet_rpc
+      .set_attribute(
+        format!("inv_{}", monero_invoice.payment_hash),
+        address.as_hex(),
+      )
+      .await
+      .map_err(|_| OpuzaRpcError)?;
+
     // Save the metadata we need later on as serialized data in the wallet
     let label = serde_json::to_string(&monero_invoice).unwrap();
     wallet_rpc
@@ -132,14 +142,23 @@ impl MoneroRpcClient {
     // let daemon_rpc = daemon_client.daemon_rpc();
     let wallet_rpc = daemon_client.wallet();
 
-    let address = wallet_rpc.get_address(0, None).await;
+    // Retrieve the address data using the payment_hash as a key
+    let sub_address = wallet_rpc
+      .get_attribute(format!("inv_{}", &payment_hash_hex))
+      .await
+      .map_err(|_| OpuzaRpcError)?;
 
-    let sub_address_data: Vec<SubaddressData> = address
-      .unwrap()
-      .addresses
-      .into_iter()
-      .filter(|x| x.label.contains(&payment_hash_hex))
-      .collect();
+    let address = Address::from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
+    let sub_address_idx = wallet_rpc
+      .get_address_index(address)
+      .await
+      .map_err(|_| OpuzaRpcError)?;
+
+    let address = wallet_rpc
+      .get_address(sub_address_idx.major, Some(vec![sub_address_idx.minor]))
+      .await;
+
+    let sub_address_data: Vec<SubaddressData> = address.map_err(|_| OpuzaRpcError)?.addresses;
 
     let sub_address = sub_address_data.get(0).ok_or_else(|| OpuzaRpcError);
 

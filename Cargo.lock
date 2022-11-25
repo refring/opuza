@@ -1197,6 +1197,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "fixed-hash"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "835c052cb0c08c1acf6ffd71c022172e18723949c8282f2b9f27efbc51e64534"
+dependencies = [
+ "byteorder",
+ "rand 0.8.5",
+ "rustc-hex",
+ "static_assertions",
+]
+
+[[package]]
 name = "fixedbitset"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2126,7 +2138,7 @@ checksum = "d0de5ecaeeb7618bb1554d1d90e79cc673ba755fd20d43ed4352ab6efa1a7b0f"
 dependencies = [
  "base58-monero",
  "curve25519-dalek",
- "fixed-hash",
+ "fixed-hash 0.7.0",
  "hex",
  "hex-literal",
  "sealed",
@@ -2139,12 +2151,12 @@ dependencies = [
 [[package]]
 name = "monero-rpc"
 version = "0.2.0"
-source = "git+https://github.com/refactor-ring/monero-rpc-rs?branch=rpc-client-builder-merged#adcff09c2a304f1e8130e5d6c7831b02fc19bbb1"
+source = "git+https://github.com/refactor-ring/monero-rpc-rs?branch=rpc-client-builder-merged#3c722230d58002ca461ea786aee7864f46d9d9b8"
 dependencies = [
  "anyhow",
  "chrono",
  "diqwest",
- "fixed-hash",
+ "fixed-hash 0.8.0",
  "hex",
  "http",
  "jsonrpc-core",
