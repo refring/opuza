@@ -3,7 +3,7 @@
 use ::monero::cryptonote::subaddress::Index;
 use ::monero::Address;
 use hex::FromHex;
-use monero_rpc::{GetTransfersCategory, GetTransfersSelector, RpcClient, SubaddressData};
+use monero_rpc::{BlockHeightFilter, GetTransfersCategory, GetTransfersSelector, RpcClient, SubaddressData};
 use openssl::sha::sha256;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
@@ -62,7 +62,8 @@ impl MoneroRpcClient {
   }
 
   pub async fn ping(&self) -> Result<(), OpuzaRpcError> {
-    let daemon_client = RpcClient::new(self.inner.clone());
+    let daemon_client = monero_rpc::RpcClientBuilder::new()
+        .build(self.inner.clone()).unwrap();
     // let daemon_rpc = daemon_client.daemon_rpc();
     let daemon = daemon_client.wallet();
 
@@ -78,7 +79,8 @@ impl MoneroRpcClient {
     memo: &str,
     value: Piconero,
   ) -> Result<AddOpuzaInvoiceResponse, OpuzaRpcError> {
-    let daemon_client = RpcClient::new(self.inner.clone());
+    let daemon_client = monero_rpc::RpcClientBuilder::new()
+        .build(self.inner.clone()).unwrap();
     let wallet_rpc = daemon_client.wallet();
 
     let block_height = wallet_rpc.get_height().await;
@@ -138,8 +140,8 @@ impl MoneroRpcClient {
   ) -> Result<Option<OpuzaInvoice>, OpuzaRpcError> {
     let payment_hash_hex = hex::encode(&r_hash);
 
-    let daemon_client = RpcClient::new(self.inner.clone());
-    // let daemon_rpc = daemon_client.daemon_rpc();
+    let daemon_client = monero_rpc::RpcClientBuilder::new()
+        .build(self.inner.clone()).unwrap();
     let wallet_rpc = daemon_client.wallet();
 
     // Retrieve the address data using the payment_hash as a key
@@ -148,7 +150,9 @@ impl MoneroRpcClient {
       .await
       .map_err(|_| OpuzaRpcError)?;
 
-    let address = Address::from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
+    // @TODO replace when monero-rpc-rs switches to monero-rs v18
+    // let address = Address::from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
+    let address = from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
     let sub_address_idx = wallet_rpc
       .get_address_index(address)
       .await
@@ -166,13 +170,12 @@ impl MoneroRpcClient {
 
     println!("lookup invoice {:?}", cln_inv);
 
-    self.update_payments().await;
-
     Ok(Some(cln_inv))
   }
 
-  async fn update_payments(&self) {
-    let daemon_client = RpcClient::new(self.inner.clone());
+  pub async fn update_payments(&self) {
+    let daemon_client = monero_rpc::RpcClientBuilder::new()
+        .build(self.inner.clone()).unwrap();
     let wallet_rpc = daemon_client.wallet();
 
     let mut category_selector = HashMap::new();
@@ -181,9 +184,30 @@ impl MoneroRpcClient {
     let mut transfer_selector = GetTransfersSelector::default();
     transfer_selector.category_selector = category_selector;
 
+    let last_block_height = wallet_rpc.get_attribute("block_height".to_string()).await
+        .map_err(|_| OpuzaRpcError);
+
+    let last_block_height: u64 = match last_block_height{
+      Ok(height) => height.parse().unwrap(),
+      Err(e) => 0
+    };
+
+    println!("Start scanning for transfers from blockheight {}", last_block_height);
+
+    transfer_selector.block_height_filter = Some(BlockHeightFilter{
+      min_height: Some(last_block_height),
+      max_height: None
+    });
+
     let transfers = wallet_rpc.get_transfers(transfer_selector).await;
 
+    let current_block_height = wallet_rpc.get_height().await.unwrap();
+    println!("Current block height {}", current_block_height);
+
     if let Some(transfers) = transfers.unwrap().get(&GetTransfersCategory::In) {
+      // store block_height
+      wallet_rpc.set_attribute("block_height".to_string(), current_block_height.to_string()).await;
+
       for transfer in transfers.iter() {
         println!("Transfer: {:?}", transfer);
         let address_filter = vec![transfer.subaddr_index.minor];
@@ -223,30 +247,6 @@ pub struct OpuzaInvoice {
   pub payment_request: String,
 }
 
-pub fn buffer_to_hex<T, S>(buffer: &T, serializer: S) -> Result<S::Ok, S::Error>
-where
-  T: AsRef<[u8]>,
-  S: Serializer,
-{
-  serializer.serialize_str(&hex::encode(&buffer.as_ref()))
-}
-
-/// Deserializes a lowercase hex string to a `Vec<u8>`.
-pub fn hex_to_buffer<'de, D>(deserializer: D) -> Result<[u8; 32], D::Error>
-where
-  D: Deserializer<'de>,
-{
-  use serde::de::Error;
-
-  let mut bytes: [u8; 32] = [0; 32];
-
-  String::deserialize(deserializer).and_then(|string| {
-    hex::decode_to_slice(&string, &mut bytes as &mut [u8])
-      .map_err(|err| Error::custom(err.to_string()))?;
-    Ok(bytes)
-  })
-}
-
 #[derive(Debug, Clone)]
 pub struct AddOpuzaInvoiceResponse {
   pub payment_hash: String,
@@ -266,4 +266,11 @@ impl Error for OpuzaRpcError {
     // TODO: replace with actual description from error status.
     "failed Monero node request"
   }
+}
+
+fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Address, monero::util::address::Error> {
+  let hex = hex.as_ref();
+  let hex = hex.strip_prefix("0x".as_bytes()).unwrap_or(hex);
+  let bytes = hex::decode(hex).map_err(|_| monero::util::address::Error::InvalidFormat)?;
+  Address::from_bytes(&bytes)
 }
