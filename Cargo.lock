@@ -1051,30 +1051,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "digest_auth"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fa30657988b2ced88f68fe490889e739bf98d342916c33ed3100af1d6f1cbc9c"
-dependencies = [
- "digest 0.9.0",
- "hex",
- "md-5",
- "rand 0.8.5",
- "sha2 0.9.9",
-]
-
-[[package]]
-name = "diqwest"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70822b55cc8af405e65915d22ee0031433414f4464fa276cd6cdb9fff203bb40"
-dependencies = [
- "async-trait",
- "digest_auth",
- "reqwest",
-]
-
-[[package]]
 name = "discard"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2044,17 +2020,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "md-5"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b5a279bb9607f9f53c22d496eade00d138d1bdcccd07d74650387cf94942a15"
-dependencies = [
- "block-buffer 0.9.0",
- "digest 0.9.0",
- "opaque-debug",
-]
-
-[[package]]
 name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2132,9 +2097,9 @@ dependencies = [
 
 [[package]]
 name = "monero"
-version = "0.18.0"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0de5ecaeeb7618bb1554d1d90e79cc673ba755fd20d43ed4352ab6efa1a7b0f"
+checksum = "8afa5d322a573d345588c3255aaf3316b6a13f3b94f8e776c5ffcde237ec481d"
 dependencies = [
  "base58-monero",
  "curve25519-dalek",
@@ -2150,12 +2115,11 @@ dependencies = [
 
 [[package]]
 name = "monero-rpc"
-version = "0.2.0"
-source = "git+https://github.com/refactor-ring/monero-rpc-rs?branch=rpc-client-builder-merged#3c722230d58002ca461ea786aee7864f46d9d9b8"
+version = "0.3.2"
+source = "git+https://github.com/refactor-ring/monero-rpc-rs?branch=wallet-rpc-attributes#da4c85dfe2d91e5d00470e717154abab1dd8e049"
 dependencies = [
  "anyhow",
  "chrono",
- "diqwest",
  "fixed-hash 0.8.0",
  "hex",
  "http",
@@ -4159,9 +4123,9 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.21.2"
+version = "1.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9e03c497dc955702ba729190dc4aac6f2a0ce97f913e5b1b5912fc5039d9099"
+checksum = "d76ce4a75fb488c605c54bf610f221cea8b0dafb53333c1a67e8ee199dcd2ae3"
 dependencies = [
  "autocfg",
  "bytes",
