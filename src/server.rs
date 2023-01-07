@@ -1,6 +1,6 @@
+use opuza_monero_client::MoneroRpcClient;
 use std::time::Duration;
 use {crate::common::*, tower::make::Shared};
-use opuza_monero_client::MoneroRpcClient;
 
 pub(crate) struct Server {
   http_request_handler: Option<hyper::Server<AddrIncoming, Shared<RequestHandler>>>,
@@ -177,14 +177,16 @@ impl Server {
   }
 }
 
-pub struct TransactionListener{
-  rpc_client: MoneroRpcClient
+pub struct TransactionListener {
+  rpc_client: MoneroRpcClient,
 }
 
 impl TransactionListener {
-  pub(crate) async fn new(rpc_client: Option<opuza_monero_client::MoneroRpcClient>) -> Result<TransactionListener> {
-    Ok(Self{
-      rpc_client: rpc_client.unwrap()
+  pub(crate) async fn new(
+    rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
+  ) -> Result<TransactionListener> {
+    Ok(Self {
+      rpc_client: rpc_client.unwrap(),
     })
   }
 

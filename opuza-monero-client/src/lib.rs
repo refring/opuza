@@ -2,16 +2,14 @@
 
 use ::monero::cryptonote::subaddress::Index;
 use ::monero::Address;
-use hex::FromHex;
-use monero_rpc::{BlockHeightFilter, GetTransfersCategory, GetTransfersSelector, RpcClient, SubaddressData};
+use monero_rpc::{BlockHeightFilter, GetTransfersCategory, GetTransfersSelector, SubaddressData};
 use openssl::sha::sha256;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use {core::fmt::Debug, std::error::Error, std::fmt};
 
 pub use piconero::Piconero;
 
-mod https_service;
 mod piconero;
 
 #[cfg(test)]
@@ -63,7 +61,8 @@ impl MoneroRpcClient {
 
   pub async fn ping(&self) -> Result<(), OpuzaRpcError> {
     let daemon_client = monero_rpc::RpcClientBuilder::new()
-        .build(self.inner.clone()).unwrap();
+      .build(self.inner.clone())
+      .unwrap();
     // let daemon_rpc = daemon_client.daemon_rpc();
     let daemon = daemon_client.wallet();
 
@@ -80,7 +79,8 @@ impl MoneroRpcClient {
     value: Piconero,
   ) -> Result<AddOpuzaInvoiceResponse, OpuzaRpcError> {
     let daemon_client = monero_rpc::RpcClientBuilder::new()
-        .build(self.inner.clone()).unwrap();
+      .build(self.inner.clone())
+      .unwrap();
     let wallet_rpc = daemon_client.wallet();
 
     let block_height = wallet_rpc.get_height().await;
@@ -141,7 +141,8 @@ impl MoneroRpcClient {
     let payment_hash_hex = hex::encode(&r_hash);
 
     let daemon_client = monero_rpc::RpcClientBuilder::new()
-        .build(self.inner.clone()).unwrap();
+      .build(self.inner.clone())
+      .unwrap();
     let wallet_rpc = daemon_client.wallet();
 
     // Retrieve the address data using the payment_hash as a key
@@ -175,7 +176,8 @@ impl MoneroRpcClient {
 
   pub async fn update_payments(&self) {
     let daemon_client = monero_rpc::RpcClientBuilder::new()
-        .build(self.inner.clone()).unwrap();
+      .build(self.inner.clone())
+      .unwrap();
     let wallet_rpc = daemon_client.wallet();
 
     let mut category_selector = HashMap::new();
@@ -184,19 +186,24 @@ impl MoneroRpcClient {
     let mut transfer_selector = GetTransfersSelector::default();
     transfer_selector.category_selector = category_selector;
 
-    let last_block_height = wallet_rpc.get_attribute("block_height".to_string()).await
-        .map_err(|_| OpuzaRpcError);
+    let last_block_height = wallet_rpc
+      .get_attribute("block_height".to_string())
+      .await
+      .map_err(|_| OpuzaRpcError);
 
-    let last_block_height: u64 = match last_block_height{
+    let last_block_height: u64 = match last_block_height {
       Ok(height) => height.parse().unwrap(),
-      Err(e) => 0
+      Err(_e) => 0,
     };
 
-    println!("Start scanning for transfers from blockheight {}", last_block_height);
+    println!(
+      "Start scanning for transfers from blockheight {}",
+      last_block_height
+    );
 
-    transfer_selector.block_height_filter = Some(BlockHeightFilter{
+    transfer_selector.block_height_filter = Some(BlockHeightFilter {
       min_height: Some(last_block_height),
-      max_height: None
+      max_height: None,
     });
 
     let transfers = wallet_rpc.get_transfers(transfer_selector).await;
@@ -206,7 +213,9 @@ impl MoneroRpcClient {
 
     if let Some(transfers) = transfers.unwrap().get(&GetTransfersCategory::In) {
       // store block_height
-      wallet_rpc.set_attribute("block_height".to_string(), current_block_height.to_string()).await;
+      let _attribute_result = wallet_rpc
+        .set_attribute("block_height".to_string(), current_block_height.to_string())
+        .await;
 
       for transfer in transfers.iter() {
         println!("Transfer: {:?}", transfer);
