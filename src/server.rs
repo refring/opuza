@@ -1,4 +1,6 @@
-use {crate::common::*, openssl::x509::X509, tower::make::Shared};
+use std::time::Duration;
+use {crate::common::*, tower::make::Shared};
+use opuza_monero_client::MoneroRpcClient;
 
 pub(crate) struct Server {
   http_request_handler: Option<hyper::Server<AddrIncoming, Shared<RequestHandler>>>,
@@ -25,7 +27,8 @@ impl Server {
       None => None,
     };
 
-    let transaction_listener = Some(TransactionListener::new().await?);
+    let rpc_client = Self::setup_rpc_client(environment, &arguments).await?;
+    let transaction_listener = Some(TransactionListener::new(rpc_client).await?);
 
     let (https_request_handler, https_redirect_server) =
       if let Some(https_port) = arguments.https_port {
@@ -133,8 +136,6 @@ impl Server {
       OptionFuture::from(self.https_request_handler.map(|x| x.run())).map(Ok),
       OptionFuture::from(self.https_redirect_server)
         .map(|option| option.unwrap_or(Ok(())).context(error::ServerRun)),
-      // OptionFuture::from(self.transaction_listener)
-      //   .map(|option| option.unwrap_or(Ok(())).context(error::ServerRun)),
       OptionFuture::from(self.transaction_listener.map(|x| x.run())).map(Ok),
     )?;
 
@@ -176,24 +177,27 @@ impl Server {
   }
 }
 
-struct TransactionListener;
+pub struct TransactionListener{
+  rpc_client: MoneroRpcClient
+}
 
 impl TransactionListener {
-  pub async fn new() -> Result<TransactionListener> {
-    Ok(TransactionListener)
+  pub(crate) async fn new(rpc_client: Option<opuza_monero_client::MoneroRpcClient>) -> Result<TransactionListener> {
+    Ok(Self{
+      rpc_client: rpc_client.unwrap()
+    })
   }
 
   pub async fn run(self) {
-    println!("Running TransactionListener");
-    let mut n = 1;
-
-    // Loop while `n` is less than 101
-    while n < 10 {
-      println!("Running TransactionListener");
-
-      // Increment counter
-      n += 1;
+    loop {
+      println!("Looking for new transactions..");
+      tokio::time::sleep(Duration::from_secs(2)).await;
+      self.scan_transactions().await;
     }
+  }
+
+  pub async fn scan_transactions(&self) {
+    self.rpc_client.update_payments().await;
   }
 }
 
