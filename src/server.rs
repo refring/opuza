@@ -178,7 +178,7 @@ impl Server {
 }
 
 pub struct TransactionListener {
-  rpc_client: MoneroRpcClient,
+  rpc_client: Option<MoneroRpcClient>,
 }
 
 impl TransactionListener {
@@ -186,7 +186,7 @@ impl TransactionListener {
     rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
   ) -> Result<TransactionListener> {
     Ok(Self {
-      rpc_client: rpc_client.unwrap(),
+      rpc_client,
     })
   }
 
@@ -199,7 +199,7 @@ impl TransactionListener {
   }
 
   pub async fn scan_transactions(&self) {
-    self.rpc_client.update_payments().await;
+    self.rpc_client.as_ref().unwrap().update_payments().await;
   }
 }
 
