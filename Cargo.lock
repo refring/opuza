@@ -491,9 +491,9 @@ checksum = "dfb24e866b15a1af2a1b663f10c6b6b8f397a84aadb828f12e5b289ec23a3a3c"
 
 [[package]]
 name = "camino"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88ad0e1e3e88dd237a156ab9f571021b8a158caa0ae44b1968a241efb5144c1e"
+checksum = "c77df041dc383319cc661b428b6961a005db4d6808d5e12536931b1ca9556055"
 dependencies = [
  "serde",
 ]
@@ -2446,7 +2446,6 @@ dependencies = [
  "structopt",
  "tempfile",
  "termcolor",
- "time 0.3.17",
  "tiny-skia",
  "tokio",
  "tokio-rustls 0.22.0",
@@ -4071,22 +4070,6 @@ dependencies = [
  "version_check",
  "winapi",
 ]
-
-[[package]]
-name = "time"
-version = "0.3.17"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a561bf4617eebd33bca6434b988f39ed798e527f51a1e797d0ee4f61c0a38376"
-dependencies = [
- "serde",
- "time-core",
-]
-
-[[package]]
-name = "time-core"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e153e1f1acaef8acc537e68b44906d2db6436e2b35ac2c6b42640fff91f00fd"
 
 [[package]]
 name = "time-macros"
