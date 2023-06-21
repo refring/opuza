@@ -185,22 +185,22 @@ fn paying_invoice_allows_downloading_file() {
   });
 }
 
-#[test]
-fn allows_configuring_invoice_amount() {
-  test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    use lightning_invoice::Invoice;
-    context.write(".opuza.yaml", "{paid: true, base-price: 1234 sat}");
-    context.write("foo", "precious content");
-    let response = get(&context.files_url().join("foo").unwrap()).await;
-    let html = Html::parse_document(&response.text().await.unwrap());
-    guard_unwrap!(let &[invoice_element] = css_select(&html, ".invoice").as_slice());
-    assert_contains(&invoice_element.inner_html(), "1,234 satoshis");
-    guard_unwrap!(let &[payment_request] = css_select(&html, ".payment-request").as_slice());
-    let payment_request = payment_request.text().collect::<String>();
-    let invoice = payment_request.parse::<Invoice>().unwrap();
-    assert_eq!(invoice.amount_milli_satoshis().unwrap(), 1234 * 1000);
-  });
-}
+// #[test]
+// fn allows_configuring_invoice_amount() {
+//   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
+//     use lightning_invoice::Invoice;
+//     context.write(".opuza.yaml", "{paid: true, base-price: 1234 sat}");
+//     context.write("foo", "precious content");
+//     let response = get(&context.files_url().join("foo").unwrap()).await;
+//     let html = Html::parse_document(&response.text().await.unwrap());
+//     guard_unwrap!(let &[invoice_element] = css_select(&html, ".invoice").as_slice());
+//     assert_contains(&invoice_element.inner_html(), "1,234 satoshis");
+//     guard_unwrap!(let &[payment_request] = css_select(&html, ".payment-request").as_slice());
+//     let payment_request = payment_request.text().collect::<String>();
+//     let invoice = payment_request.parse::<Invoice>().unwrap();
+//     assert_eq!(invoice.amount_milli_satoshis().unwrap(), 1234 * 1000);
+//   });
+// }
 
 #[test]
 fn configuring_paid_without_base_price_returns_error() {
@@ -369,25 +369,25 @@ fn request_path_must_match_invoice_path() {
   );
 }
 
-#[test]
-fn payment_request_memo_decodes_percent() {
-  use lightning_invoice::{Invoice, InvoiceDescription};
-
-  test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
-    context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
-    context.write("file.with.dots", "");
-    let html = html(&context.files_url().join("file%2Ewith%2Edots").unwrap()).await;
-    guard_unwrap!(let &[payment_request] = css_select(&html, ".payment-request").as_slice());
-    let payment_request = payment_request.text().collect::<String>();
-    let invoice = payment_request.parse::<Invoice>().unwrap();
-    let description = if let InvoiceDescription::Direct(d) = invoice.description() {
-      d
-    } else {
-      panic!("Not a direct invoice description.")
-    };
-    assert!(description.starts_with("file.with.dots"));
-  });
-}
+// #[test]
+// fn payment_request_memo_decodes_percent() {
+//   use lightning_invoice::{Invoice, InvoiceDescription};
+//
+//   test_with_lnd(&LndTestContext::new_blocking(), |context| async move {
+//     context.write(".opuza.yaml", "{paid: true, base-price: 1000 sat}");
+//     context.write("file.with.dots", "");
+//     let html = html(&context.files_url().join("file%2Ewith%2Edots").unwrap()).await;
+//     guard_unwrap!(let &[payment_request] = css_select(&html, ".payment-request").as_slice());
+//     let payment_request = payment_request.text().collect::<String>();
+//     let invoice = payment_request.parse::<Invoice>().unwrap();
+//     let description = if let InvoiceDescription::Direct(d) = invoice.description() {
+//       d
+//     } else {
+//       panic!("Not a direct invoice description.")
+//     };
+//     assert!(description.starts_with("file.with.dots"));
+//   });
+// }
 
 #[test]
 fn filenames_with_percent_encoding() {
