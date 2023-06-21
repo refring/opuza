@@ -2,7 +2,10 @@
 
 use ::monero::cryptonote::subaddress::Index;
 use ::monero::Address;
-use monero_rpc::{BlockHeightFilter, GetTransfersCategory, GetTransfersSelector, SubaddressData};
+use monero_rpc::TransferHeight::Confirmed;
+use monero_rpc::{
+  BlockHeightFilter, GetTransfersCategory, GetTransfersSelector, SubaddressData, TransferHeight,
+};
 use openssl::sha::sha256;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -26,15 +29,7 @@ impl From<Address> for AddOpuzaInvoiceResponse {
 
 impl From<SubaddressData> for OpuzaInvoice {
   fn from(item: SubaddressData) -> Self {
-    let monero_invoice: OpuzaInvoice = serde_json::from_str(&item.label).unwrap();
-
-    OpuzaInvoice {
-      value: monero_invoice.value,
-      is_settled: monero_invoice.is_settled,
-      memo: monero_invoice.memo,
-      payment_hash: monero_invoice.payment_hash,
-      payment_request: monero_invoice.payment_request,
-    }
+    serde_json::from_str::<OpuzaInvoice>(&item.label).unwrap_or_default()
   }
 }
 
@@ -63,7 +58,6 @@ impl MoneroRpcClient {
     let daemon_client = monero_rpc::RpcClientBuilder::new()
       .build(self.inner.clone())
       .unwrap();
-    // let daemon_rpc = daemon_client.daemon_rpc();
     let daemon = daemon_client.wallet();
 
     let block_height = daemon.get_height().await;
@@ -87,13 +81,9 @@ impl MoneroRpcClient {
 
     block_height.map_err(|_| OpuzaRpcError)?;
 
-    let mut monero_invoice = OpuzaInvoice {
-      value: value.value(),
-      memo: memo.to_owned(),
-      payment_hash: String::from(""),
-      is_settled: false,
-      payment_request: String::from(""),
-    };
+    let mut monero_invoice = OpuzaInvoice::new();
+    monero_invoice.value = value.value();
+    monero_invoice.memo = memo.to_owned();
 
     let (address, index) = wallet_rpc
       .create_address(0, Some(serde_json::to_string(&monero_invoice).unwrap()))
@@ -182,6 +172,8 @@ impl MoneroRpcClient {
 
     let mut category_selector = HashMap::new();
     category_selector.insert(GetTransfersCategory::In, true);
+    category_selector.insert(GetTransfersCategory::Pending, true);
+    category_selector.insert(GetTransfersCategory::Pool, true);
 
     let mut transfer_selector = GetTransfersSelector::default();
     transfer_selector.category_selector = category_selector;
@@ -192,14 +184,13 @@ impl MoneroRpcClient {
       .map_err(|_| OpuzaRpcError);
 
     let last_block_height: u64 = match last_block_height {
-      Ok(height) => height.parse().unwrap(),
+      Ok(height) => {
+        let block_height_attribute: u64 = height.parse().unwrap();
+        // We check the last 10 blocks for transactions
+        block_height_attribute - 10
+      }
       Err(_e) => 0,
     };
-
-    println!(
-      "Start scanning for transfers from blockheight {}",
-      last_block_height
-    );
 
     transfer_selector.block_height_filter = Some(BlockHeightFilter {
       min_height: Some(last_block_height),
@@ -209,51 +200,105 @@ impl MoneroRpcClient {
     let transfers = wallet_rpc.get_transfers(transfer_selector).await;
 
     let current_block_height = wallet_rpc.get_height().await.unwrap();
-    println!("Current block height {}", current_block_height);
+    println!(
+      "Start scanning from {}, current block height {}",
+      last_block_height, current_block_height
+    );
 
-    if let Some(transfers) = transfers.unwrap().get(&GetTransfersCategory::In) {
-      // store block_height
-      let _attribute_result = wallet_rpc
-        .set_attribute("block_height".to_string(), current_block_height.to_string())
-        .await;
+    let mut update_block_height = true;
 
+    for (_transfer_category, transfers) in transfers.unwrap().into_iter() {
       for transfer in transfers.iter() {
-        println!("Transfer: {:?}", transfer);
+        println!("==\nTransfer: {:?}", transfer);
         let address_filter = vec![transfer.subaddr_index.minor];
         let address = wallet_rpc.get_address(0, Some(address_filter)).await;
 
         let address_tmp = address.unwrap();
         let sub_address = address_tmp.addresses.get(0).ok_or_else(|| OpuzaRpcError);
         let cln_inv: OpuzaInvoice = sub_address.clone().unwrap().clone().into();
-        println!("Invoice: {:?}", cln_inv);
+        println!("Invoice: {:?}\n==\n", cln_inv);
 
-        if transfer.double_spend_seen == false && transfer.amount.as_pico() >= cln_inv.value {
-          let mut monero_invoice: OpuzaInvoice =
-            serde_json::from_str(&sub_address.unwrap().label).unwrap();
-          monero_invoice.is_settled = true;
-          // Save the metadata we need later on as serialized data in the wallet
-          let label = serde_json::to_string(&monero_invoice).unwrap();
-          let index = Index {
-            major: 0,
-            minor: transfer.subaddr_index.minor.clone(),
+        let mut minimum_confirmations = 0;
+
+        // If double_spend_seen is set to true we want a couple confirmations, see:
+        // https://github.com/monero-project/monero/commit/ccf53a566c1c2e980ed30a7371b8789ffb4c01a7
+        if transfer.double_spend_seen != false {
+          minimum_confirmations += 1;
+        }
+
+        // Locked transactions are not spendable until the block in transfer.unlock_time
+        // Make sure that the minimum amount on confirmations is adjusted for this
+        if transfer.unlock_time > 0 && transfer.unlock_time > current_block_height.get() {
+          minimum_confirmations = if let Confirmed(block_height) = transfer.height {
+            transfer.unlock_time - block_height.get()
+          } else {
+            transfer.unlock_time - current_block_height.get()
           };
-          let _result = wallet_rpc
-            .label_address(index, label)
-            .await
-            .map_err(|_| OpuzaRpcError);
+
+          println!(
+            "Found locked transaction, setting min confirms to {}",
+            minimum_confirmations
+          );
+        }
+
+        let transfer_confirmations = transfer.confirmations.unwrap_or(0);
+
+        if transfer.height == TransferHeight::InPool
+          && minimum_confirmations > 0
+          && transfer_confirmations > 0
+        {
+          minimum_confirmations = transfer_confirmations + minimum_confirmations;
+        }
+
+        if transfer_confirmations >= minimum_confirmations
+          && transfer.amount.as_pico() >= cln_inv.value
+        {
+          let mut monero_invoice: OpuzaInvoice = sub_address.unwrap().clone().into();
+
+          if monero_invoice.is_settled != true {
+            monero_invoice.is_settled = true;
+            // Save the metadata we need later on as serialized data in the wallet
+            let label = serde_json::to_string(&monero_invoice).unwrap();
+            let index = Index {
+              major: 0,
+              minor: transfer.subaddr_index.minor.clone(),
+            };
+            let _result = wallet_rpc
+              .label_address(index, label)
+              .await
+              .map_err(|_| OpuzaRpcError);
+          }
+        } else {
+          // When we arrive here we skipped a transaction so we want to try again later
+          update_block_height = false;
         }
       }
+    }
+
+    if update_block_height == true {
+      // All transactions have been processed up until update_block_height
+      // This is mechanism is mainly because of unlock_time
+      let _attribute_result = wallet_rpc
+        .set_attribute("block_height".to_string(), current_block_height.to_string())
+        .await;
     }
   }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct OpuzaInvoice {
   pub value: u64,
+  pub amount_settled: u64,
   pub is_settled: bool,
   pub memo: String,
   pub payment_hash: String,
   pub payment_request: String,
+}
+
+impl OpuzaInvoice {
+  fn new() -> Self {
+    Default::default()
+  }
 }
 
 #[derive(Debug, Clone)]
