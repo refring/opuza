@@ -1,3 +1,4 @@
+use std::ops::Div;
 use serde::Serialize;
 use {
   regex::Regex,
@@ -20,6 +21,14 @@ impl Piconero {
 
   pub fn new(value: u64) -> Self {
     Self(value)
+  }
+
+  pub fn as_xmr(self) -> f64 {
+    const BASE: f64 = 1000000000000.0;
+
+    let xmr: f64 = self.0 as f64 / BASE;
+
+    xmr
   }
 }
 
