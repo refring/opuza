@@ -91,7 +91,7 @@ impl LndTestContext {
 
     let lnd = 'outer: loop {
       let lnd = Command::new(executables::lnd().await)
-        .args(&[
+        .args([
           "--bitcoin.regtest",
           "--bitcoin.active",
           "--bitcoin.node=bitcoind",

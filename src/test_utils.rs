@@ -131,7 +131,7 @@ where
     .extend(args.iter().cloned().map(OsString::from));
 
   let www = environment.working_directory.join("www");
-  std::fs::create_dir(&www).unwrap();
+  std::fs::create_dir(www).unwrap();
 
   test_with_environment(&mut environment, f)
 }

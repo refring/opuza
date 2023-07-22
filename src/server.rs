@@ -255,7 +255,7 @@ mod tests {
     let mut environment = Environment::test();
 
     let www = environment.working_directory.join("www");
-    std::fs::create_dir(&www).unwrap();
+    std::fs::create_dir(www).unwrap();
 
     tokio::runtime::Builder::new_multi_thread()
       .enable_all()
@@ -284,7 +284,7 @@ mod tests {
     ];
 
     let www = environment.working_directory.join("www");
-    std::fs::create_dir(&www).unwrap();
+    std::fs::create_dir(www).unwrap();
 
     tokio::runtime::Builder::new_multi_thread()
       .enable_all()

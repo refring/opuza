@@ -104,7 +104,7 @@ fn bugfix_symlink_with_relative_base_directory() {
   let mut environment = Environment::test();
 
   let www = environment.working_directory.join("www");
-  std::fs::create_dir(&www).unwrap();
+  std::fs::create_dir(www).unwrap();
 
   let working_directory = environment.working_directory.join("working_directory");
   std::fs::create_dir(&working_directory).unwrap();

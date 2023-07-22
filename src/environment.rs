@@ -11,7 +11,7 @@ pub(crate) struct Environment {
 impl Environment {
   pub(crate) fn production() -> Result<Self> {
     Ok(Environment {
-      arguments: env::args_os().into_iter().collect(),
+      arguments: env::args_os().collect(),
       stderr: Stderr::production(),
       working_directory: env::current_dir().context(error::CurrentDir)?,
       #[cfg(test)]

@@ -179,7 +179,7 @@ fn listed_files_can_be_played_in_browser() {
   guard_unwrap!(let &[a] = css_select(&html, ".listing a:not([download])").as_slice());
   assert_eq!(a.inner_html(), "some-test-file.txt");
   let file_url = a.value().attr("href").unwrap();
-  let file_contents = context.text(&format!("files/{}", file_url));
+  let file_contents = context.text(format!("files/{}", file_url));
   assert_eq!(file_contents, "contents");
 }
 
@@ -191,7 +191,7 @@ fn listed_files_have_download_links() {
   guard_unwrap!(let &[a] = css_select(&html, "a[download]").as_slice());
   assert_contains(&a.inner_html(), "download");
   let file_url = a.value().attr("href").unwrap();
-  let file_contents = context.text(&format!("files/{}", file_url));
+  let file_contents = context.text(format!("files/{}", file_url));
   assert_eq!(file_contents, "contents");
 }
 
@@ -315,7 +315,7 @@ fn subdirectories_appear_in_listings() {
   guard_unwrap!(let &[a] = css_select(&subdir_listing, ".listing a:not([download])").as_slice());
   assert_eq!(a.inner_html(), "bar.txt");
   let file_url = subdir_url.join(a.value().attr("href").unwrap()).unwrap();
-  assert_eq!(context.text(&file_url), "hello");
+  assert_eq!(context.text(file_url), "hello");
 }
 
 #[test]
@@ -403,7 +403,7 @@ fn allow_file_downloads_via_local_intermediate_symlinks() {
 fn allow_listing_directories_via_local_symlinks() {
   let context = OpuzaTestContext::builder().build();
   let dir = context.files_directory().join("dir");
-  fs::create_dir(&dir).unwrap();
+  fs::create_dir(dir).unwrap();
   symlink("dir", context.files_directory().join("link"));
   let response = reqwest::blocking::get(context.files_url().join("link").unwrap()).unwrap();
   assert_eq!(response.status(), StatusCode::OK);
@@ -493,7 +493,7 @@ fn return_404_for_hidden_files() {
 fn return_404_for_hidden_directories() {
   let context = OpuzaTestContext::builder().build();
   let dir = context.files_directory().join(".dir");
-  fs::create_dir(&dir).unwrap();
+  fs::create_dir(dir).unwrap();
   let response = reqwest::blocking::get(context.files_url().join(".dir").unwrap()).unwrap();
   assert_eq!(response.status(), StatusCode::NOT_FOUND);
 }
@@ -815,7 +815,7 @@ fn disallow_file_downloads_via_escaping_intermediate_symlinks() {
 fn disallow_listing_directories_via_escaping_symlinks() {
   let context = OpuzaTestContext::builder().build();
   let dir = context.files_directory().join("../dir");
-  fs::create_dir(&dir).unwrap();
+  fs::create_dir(dir).unwrap();
   symlink("../dir", context.files_directory().join("link"));
   let response = reqwest::blocking::get(context.files_url().join("link").unwrap()).unwrap();
   assert_eq!(response.status(), StatusCode::NOT_FOUND);
