@@ -24,7 +24,7 @@ tower = "0.4.8"
 async-trait = "0.1.53"
 dyn-clone = "1.0.5"
 monero-rpc = { git = "https://github.com/refactor-ring/monero-rpc-rs", branch = "wallet-rpc-attributes" }
-monero = "0.17"
+monero = "0.18"
 serde_json = "1"
 
 [dependencies.openssl]
