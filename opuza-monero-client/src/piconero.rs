@@ -1,4 +1,3 @@
-use std::ops::Div;
 use serde::Serialize;
 use {
   regex::Regex,
