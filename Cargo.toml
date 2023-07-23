@@ -28,7 +28,7 @@ pin-project = "1.0.7"
 pulldown-cmark = "0.8.0"
 qrcodegen = "=1.6.0"
 rust-embed = "6.3.0"
-rustls-acme = "0.1.7"
+rustls-acme = "0.7.3"
 serde_yaml = "0.8.17"
 termcolor = "1.1.2"
 tokio-rustls = "0.22.0"
@@ -61,6 +61,10 @@ features = ["rt", "rt-multi-thread", "macros", "fs", "time"]
 [dependencies.tokio-stream]
 version = "0.1.7"
 features = ["net"]
+
+[dependencies.tokio-util]
+version = "0.7.8"
+features = ["compat"]
 
 [dependencies.tower]
 version = "0.4.10"

@@ -300,7 +300,8 @@ impl Files {
       .ok_or_else(|| error::InvoiceNotFound { r_hash }.build())?;
     let payment_request = invoice.payment_request;
 
-    let payment_request_encdoded = percent_encoding::utf8_percent_encode(&payment_request, &Self::ENCODE_CHARACTERS);
+    let payment_request_encdoded =
+      percent_encoding::utf8_percent_encode(&payment_request, &Self::ENCODE_CHARACTERS);
 
     let qr_code = QrCode::encode_text(&payment_request_encdoded.to_string(), QrCodeEcc::Medium)
       .context(error::PaymentRequestTooLongForQrCode { payment_request })?;

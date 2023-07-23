@@ -96,7 +96,9 @@ impl MoneroRpcClient {
     monero_invoice.payment_hash = cln_inv.payment_hash.clone();
     monero_invoice.payment_request = format!(
       "monero:{}?tx_amount={}&tx_description={}",
-      address, Piconero::new(monero_invoice.value).as_xmr(), monero_invoice.memo
+      address,
+      Piconero::new(monero_invoice.value).as_xmr(),
+      monero_invoice.memo
     );
 
     // Save the payment hash as an attribute with the address as a value so we can lookup easier later

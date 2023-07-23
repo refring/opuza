@@ -185,9 +185,7 @@ impl TransactionListener {
   pub(crate) async fn new(
     rpc_client: Option<opuza_monero_client::MoneroRpcClient>,
   ) -> Result<TransactionListener> {
-    Ok(Self {
-      rpc_client,
-    })
+    Ok(Self { rpc_client })
   }
 
   pub async fn run(self) {

@@ -1,16 +1,9 @@
-use {
-  crate::common::*,
-  hyper::server::conn::Http,
-  rustls_acme::{
-    acme::{ACME_TLS_ALPN_NAME, LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
-    ResolvesServerCertUsingAcme,
-  },
-  tokio_rustls::{
-    rustls::{NoClientAuth, ServerConfig, Session},
-    server::TlsStream,
-  },
-  tokio_stream::wrappers::TcpListenerStream,
-};
+use rustls_acme::caches::DirCache;
+use rustls_acme::futures_rustls::rustls::ServerConfig;
+use rustls_acme::{AcmeAcceptor, AcmeConfig};
+use tokio_util::compat::FuturesAsyncReadCompatExt;
+use tokio_util::compat::TokioAsyncReadCompatExt;
+use {crate::common::*, hyper::server::conn::Http};
 
 pub(crate) struct HttpsRequestHandler {
   request_handler: RequestHandler,
@@ -66,71 +59,63 @@ impl HttpsRequestHandler {
   }
 
   pub(crate) async fn run(self) {
-    let resolver = ResolvesServerCertUsingAcme::new();
-    let resolver_clone = resolver.clone();
     let acme_domains = self.acme_domains.clone();
-    let cache_dir = self.cache_dir.clone();
-    task::spawn(async move {
-      resolver_clone
-        .run(
-          if cfg!(test) {
-            LETS_ENCRYPT_STAGING_DIRECTORY
-          } else {
-            LETS_ENCRYPT_PRODUCTION_DIRECTORY
-          },
-          acme_domains,
-          Some(cache_dir),
-        )
-        .await;
-    });
-    let mut config = ServerConfig::new(NoClientAuth::new());
-    config.set_protocols(&[
-      ACME_TLS_ALPN_NAME.to_vec(),
-      b"h2".to_vec(),
-      b"http/1.1".to_vec(),
-    ]);
-    config.cert_resolver = resolver;
-    let config = Arc::new(config);
-    let mut tcp_listener_stream = TcpListenerStream::new(self.listener);
-    while let Some(result) = tcp_listener_stream.next().await {
-      match result {
-        Ok(connection) => {
-          let request_handler = self.request_handler.clone();
-          let config = config.clone();
-          tokio::spawn(async move {
-            match Self::accept(config, connection).await {
-              Ok(Some(tls_stream)) => {
-                if let Err(err) = Http::new()
-                  .serve_connection(tls_stream, request_handler)
-                  .await
-                {
-                  log::debug!("Error closing TLS connection: {}", err);
-                }
-              }
-              Ok(None) => {}
-              Err(err) => log::error!("TLS accept error: {:?}", err),
-            };
-          });
-        }
-        Err(err) => {
-          log::error!("TCP accept error: {:?}", err);
+    let cache_dir = self
+      .cache_dir
+      .clone()
+      .into_os_string()
+      .into_string()
+      .unwrap();
+
+    let mut state = AcmeConfig::new(acme_domains)
+      .cache_option(Some(DirCache::new(cache_dir)))
+      .directory_lets_encrypt(cfg!(test) == false)
+      .state();
+
+    let rustls_config = ServerConfig::builder()
+      .with_safe_defaults()
+      .with_no_client_auth()
+      .with_cert_resolver(state.resolver());
+    let acceptor = state.acceptor();
+
+    tokio::spawn(async move {
+      loop {
+        match state.next().await.unwrap() {
+          Ok(ok) => log::info!("event: {:?}", ok),
+          Err(err) => log::error!("error: {:?}", err),
         }
       }
-    }
+    });
+
+    self.serve(acceptor, Arc::new(rustls_config)).await;
   }
 
-  pub(crate) async fn accept(
-    config: Arc<ServerConfig>,
-    stream: tokio::net::TcpStream,
-  ) -> std::io::Result<Option<TlsStream<tokio::net::TcpStream>>> {
-    let tls = tokio_rustls::TlsAcceptor::from(config.clone())
-      .accept(stream)
-      .await?;
-    if tls.get_ref().1.get_alpn_protocol() == Some(ACME_TLS_ALPN_NAME) {
-      log::debug!("completed acme-tls/1 handshake");
-      return Ok(None);
+  async fn serve(self, acceptor: AcmeAcceptor, rustls_config: Arc<ServerConfig>) {
+    let listener = self.listener;
+    loop {
+      let tcp = listener.accept().await.unwrap().0.compat();
+      let rustls_config = rustls_config.clone();
+      let accept_future = acceptor.accept(tcp);
+
+      let request_handler = self.request_handler.clone();
+
+      tokio::spawn(async move {
+        match accept_future.await.unwrap() {
+          None => log::info!("received TLS-ALPN-01 validation request"),
+          Some(start_handshake) => {
+            let tls = start_handshake
+              .into_stream(rustls_config)
+              .await
+              .unwrap()
+              .compat();
+            Http::new()
+              .serve_connection(tls, request_handler)
+              .await
+              .unwrap()
+          }
+        }
+      });
     }
-    Ok(Some(tls))
   }
 
   pub(crate) fn https_port(&self) -> u16 {

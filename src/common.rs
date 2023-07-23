@@ -46,7 +46,6 @@ pub(crate) use {
     task::{Context, Poll},
   },
   structopt::StructOpt,
-  tokio::task,
 };
 
 #[cfg(test)]
