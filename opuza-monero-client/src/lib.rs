@@ -2,6 +2,7 @@
 
 use ::monero::cryptonote::subaddress::Index;
 use ::monero::Address;
+use hex::FromHex;
 use monero_rpc::TransferHeight::Confirmed;
 use monero_rpc::{
   BlockHeightFilter, GetTransfersCategory, GetTransfersSelector, SubaddressData, TransferHeight,
@@ -9,7 +10,6 @@ use monero_rpc::{
 use openssl::sha::sha256;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use hex::FromHex;
 use {core::fmt::Debug, std::error::Error, std::fmt};
 
 pub use piconero::Piconero;

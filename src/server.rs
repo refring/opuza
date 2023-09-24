@@ -112,7 +112,8 @@ impl Server {
           .context(error::StderrWrite)?;
         }
         Ok(()) => {
-          writeln!(environment.stderr, "Connected to monero-wallet-rpc server",).context(error::StderrWrite)?;
+          writeln!(environment.stderr, "Connected to monero-wallet-rpc server",)
+            .context(error::StderrWrite)?;
         }
       }
       Ok(Some(client))
