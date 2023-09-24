@@ -106,13 +106,13 @@ impl Server {
         Err(error) => {
           writeln!(
             environment.stderr,
-            "warning: Cannot connect to Monero node: {}",
+            "warning: Cannot connect to the monero-wallet-rpc server: {}",
             error,
           )
           .context(error::StderrWrite)?;
         }
         Ok(()) => {
-          writeln!(environment.stderr, "Connected to Monero node",).context(error::StderrWrite)?;
+          writeln!(environment.stderr, "Connected to monero-wallet-rpc server",).context(error::StderrWrite)?;
         }
       }
       Ok(Some(client))

@@ -9,6 +9,7 @@ use monero_rpc::{
 use openssl::sha::sha256;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use hex::FromHex;
 use {core::fmt::Debug, std::error::Error, std::fmt};
 
 pub use piconero::Piconero;
@@ -143,9 +144,7 @@ impl MoneroRpcClient {
       .await
       .map_err(|_| OpuzaRpcError)?;
 
-    // @TODO replace when monero-rpc-rs switches to monero-rs v18
-    // let address = Address::from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
-    let address = from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
+    let address = Address::from_hex(sub_address).map_err(|_| OpuzaRpcError)?;
     let sub_address_idx = wallet_rpc
       .get_address_index(address)
       .await
@@ -322,11 +321,4 @@ impl Error for OpuzaRpcError {
     // TODO: replace with actual description from error status.
     "failed Monero node request"
   }
-}
-
-fn from_hex<T: AsRef<[u8]>>(hex: T) -> Result<Address, monero::util::address::Error> {
-  let hex = hex.as_ref();
-  let hex = hex.strip_prefix("0x".as_bytes()).unwrap_or(hex);
-  let bytes = hex::decode(hex).map_err(|_| monero::util::address::Error::InvalidFormat)?;
-  Address::from_bytes(&bytes)
 }
