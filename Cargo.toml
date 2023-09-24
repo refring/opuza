@@ -42,8 +42,7 @@ version = "0.14.7"
 features = ["server", "stream", "tcp", "http1", "http2"]
 
 [dependencies.serde]
-# TODO: Remove version pin when https://github.com/monero-rs/monero-rs/issues/162 is solved
-version = "=1.0.167"
+version = "1.0.167"
 features = ["derive"]
 
 [dependencies.snafu]
