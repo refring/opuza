@@ -49,9 +49,9 @@ features = ["derive"]
 version = "0.6.10"
 features = ["backtraces-impl-backtrace-crate"]
 
-[dependencies.structopt]
-version = "0.3.21"
-features = ["wrap_help"]
+[dependencies.clap]
+version = "4.4.4"
+features = ["derive","wrap_help", "cargo"]
 
 [dependencies.tokio]
 version = "1.5.0"

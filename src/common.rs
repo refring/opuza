@@ -13,6 +13,7 @@ pub(crate) use {
     server::Server,
     stderr::Stderr,
   },
+  clap::Parser,
   futures::{
     future::{BoxFuture, OptionFuture},
     FutureExt, Stream, StreamExt,
@@ -45,7 +46,6 @@ pub(crate) use {
     sync::Arc,
     task::{Context, Poll},
   },
-  structopt::StructOpt,
 };
 
 #[cfg(test)]

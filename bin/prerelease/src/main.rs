@@ -1,13 +1,14 @@
-use {regex::Regex, structopt::StructOpt};
+use clap::Parser;
+use regex::Regex;
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Arguments {
-  #[structopt(long)]
+  #[arg(long)]
   reference: String,
 }
 
 fn main() {
-  let arguments = Arguments::from_args();
+  let arguments = Arguments::parse();
 
   let regex = Regex::new("^refs/tags/[[:digit:]]+[.][[:digit:]]+[.][[:digit:]]+$")
     .expect("Failed to compile release regex");

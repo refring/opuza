@@ -40,6 +40,6 @@ impl Environment {
   }
 
   pub(crate) fn arguments(&self) -> Result<Arguments> {
-    Ok(Arguments::from_iter_safe(&self.arguments)?)
+    Ok(Arguments::try_parse_from(&self.arguments)?)
   }
 }

@@ -1,17 +1,16 @@
 use {
-  cargo_metadata::MetadataCommand, cradle::prelude::*, std::env, structopt::StructOpt,
-  tempfile::tempdir,
+  cargo_metadata::MetadataCommand, clap::Parser, cradle::prelude::*, std::env, tempfile::tempdir,
 };
 
-#[derive(StructOpt)]
+#[derive(Parser)]
 struct Arguments {
   revision: String,
-  #[structopt(long)]
+  #[arg(long)]
   publish_opuza_monero_client: bool,
 }
 
 fn main() {
-  let arguments = Arguments::from_args();
+  let arguments = Arguments::parse();
 
   let tempdir = tempdir().unwrap();
 

@@ -4,7 +4,6 @@ use {
   opuza_monero_client::OpuzaRpcError,
   snafu::{ErrorCompat, Snafu},
   std::{path::MAIN_SEPARATOR, str::Utf8Error},
-  structopt::clap,
   termcolor::WriteColor,
   tokio::task::JoinError,
 };
