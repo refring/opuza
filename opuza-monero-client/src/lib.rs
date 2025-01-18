@@ -210,13 +210,19 @@ impl MoneroRpcClient {
 
     for (_transfer_category, transfers) in transfers.unwrap().into_iter() {
       for transfer in transfers.iter() {
-        println!("==\nTransfer: {:?}", transfer);
+
         let address_filter = vec![transfer.subaddr_index.minor];
         let address = wallet_rpc.get_address(0, Some(address_filter)).await;
 
         let address_tmp = address.unwrap();
         let sub_address = address_tmp.addresses.get(0).ok_or_else(|| OpuzaRpcError);
         let cln_inv: OpuzaInvoice = sub_address.clone().unwrap().clone().into();
+
+        if cln_inv.payment_hash == "" {
+          continue;
+        }
+
+        println!("==\nTransfer: {:?}", transfer);
         println!("Invoice: {:?}\n==\n", cln_inv);
 
         let mut minimum_confirmations = 0;
