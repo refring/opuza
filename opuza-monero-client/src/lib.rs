@@ -165,7 +165,7 @@ impl MoneroRpcClient {
     Ok(Some(cln_inv))
   }
 
-  pub async fn update_payments(&self) {
+  pub async fn update_payments(&self) -> Result<(), OpuzaRpcError> {
     let daemon_client = monero_rpc::RpcClientBuilder::new()
       .build(self.inner.clone())
       .unwrap();
@@ -200,7 +200,9 @@ impl MoneroRpcClient {
 
     let transfers = wallet_rpc.get_transfers(transfer_selector).await;
 
-    let current_block_height = wallet_rpc.get_height().await.unwrap();
+    // Safely retrieve the current block height
+    let current_block_height = wallet_rpc.get_height().await.map_err(|_| OpuzaRpcError)?; // Propagate error from `get_height` directly
+
     println!(
       "Start scanning from {}, current block height {}",
       last_block_height, current_block_height
@@ -210,7 +212,6 @@ impl MoneroRpcClient {
 
     for (_transfer_category, transfers) in transfers.unwrap().into_iter() {
       for transfer in transfers.iter() {
-
         let address_filter = vec![transfer.subaddr_index.minor];
         let address = wallet_rpc.get_address(0, Some(address_filter)).await;
 
@@ -282,13 +283,16 @@ impl MoneroRpcClient {
       }
     }
 
-    if update_block_height == true {
+    if update_block_height {
       // All transactions have been processed up until update_block_height
       // This is mechanism is mainly because of unlock_time
-      let _attribute_result = wallet_rpc
+      wallet_rpc
         .set_attribute("block_height".to_string(), current_block_height.to_string())
-        .await;
+        .await
+        .map_err(|_| OpuzaRpcError)?;
     }
+
+    Ok(())
   }
 }
 

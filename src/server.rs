@@ -1,4 +1,4 @@
-use opuza_monero_client::MoneroRpcClient;
+use opuza_monero_client::{MoneroRpcClient, OpuzaRpcError};
 use std::time::Duration;
 use {crate::common::*, tower::make::Shared};
 
@@ -193,12 +193,26 @@ impl TransactionListener {
     loop {
       println!("Looking for new transactions..");
       tokio::time::sleep(Duration::from_secs(2)).await;
-      self.scan_transactions().await;
+      let ping_result = self.rpc_client.as_ref().unwrap().ping().await;
+
+      if ping_result.is_err() {
+        println!("Could not connect to monero-wallet-rpc server, retrying in 10 seconds..");
+        tokio::time::sleep(Duration::from_secs(10)).await;
+        continue;
+      }
+
+      let scan_result = self.scan_transactions().await;
+
+      if scan_result.is_err() {
+        println!("Error during transaction scanning, retrying in 10 seconds..");
+        tokio::time::sleep(Duration::from_secs(10)).await;
+      }
     }
   }
 
-  pub async fn scan_transactions(&self) {
-    self.rpc_client.as_ref().unwrap().update_payments().await;
+  pub async fn scan_transactions(&self) -> std::result::Result<(), OpuzaRpcError> {
+    self.rpc_client.as_ref().unwrap().update_payments().await?;
+    Ok(())
   }
 }
 
