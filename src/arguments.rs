@@ -68,7 +68,6 @@ pub(crate) struct Arguments {
   #[arg(
     long,
     help = "Connect to monero node rpc.",
-    requires = "monero_rpc_address"
   )]
   pub(crate) monero_rpc_address: Option<String>,
 }
