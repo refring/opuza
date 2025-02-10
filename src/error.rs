@@ -102,16 +102,16 @@ pub(crate) enum Error {
   },
   #[snafu(display("Paid file request requires LND client configuration: `{}`", path.display()))]
   LndNotConfiguredPaidFileRequest { path: PathBuf, backtrace: Backtrace },
-  #[snafu(display("OpenSSL error parsing LND RPC certificate: {}", source))]
-  LndRpcCertificateParse {
-    backtrace: Backtrace,
-    source: openssl::error::ErrorStack,
-  },
-  #[snafu(display("OpenSSL error connecting to LND RPC server: {}", source))]
-  LndRpcConnect {
-    backtrace: Backtrace,
-    source: openssl::error::ErrorStack,
-  },
+  // #[snafu(display("OpenSSL error parsing LND RPC certificate: {}", source))]
+  // LndRpcCertificateParse {
+  //   backtrace: Backtrace,
+  //   source: openssl::error::ErrorStack,
+  // },
+  // #[snafu(display("OpenSSL error connecting to LND RPC server: {}", source))]
+  // LndRpcConnect {
+  //   backtrace: Backtrace,
+  //   source: openssl::error::ErrorStack,
+  // },
   #[snafu(display("LND RPC call failed: {}", source))]
   LndRpcStatus {
     backtrace: Backtrace,
@@ -185,8 +185,8 @@ impl Error {
       | FilesystemIo { .. }
       | Internal { .. }
       | LndNotConfiguredPaidFileRequest { .. }
-      | LndRpcCertificateParse { .. }
-      | LndRpcConnect { .. }
+      // | LndRpcCertificateParse { .. }
+      // | LndRpcConnect { .. }
       | LndRpcStatus { .. }
       | PaymentRequestTooLongForQrCode { .. }
       | RequestHandlerPanic { .. }
