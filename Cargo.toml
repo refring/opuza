@@ -12,37 +12,37 @@ homepage = "https://github.com/refring/opuza"
 members = [".", "opuza-monero-client", "opuza-test-context", "bin/prerelease", "bin/publish", "lnd-test-context"]
 
 [dependencies]
-color-backtrace = "0.5.1"
-env_logger = "0.9.0"
-form_urlencoded = "1.0.1"
-futures = "0.3.14"
+color-backtrace = "0.7.0"
+env_logger = "0.11.6"
+form_urlencoded = "1.2.1"
+futures = "0.3.31"
 hex = "0.4.3"
-http = "0.2.4"
+http = "1.2.0"
 lexiclean = "0.0.1"
-log = "0.4.14"
-maud = "0.22.2"
-mime_guess = "2.0.3"
-openssl = "0.10.35"
-percent-encoding = "2.1.0"
-pin-project = "1.0.7"
-pulldown-cmark = "0.8.0"
-qrcodegen = "=1.6.0"
-rust-embed = "6.3.0"
-rustls-acme = "0.7.3"
-serde_yaml = "0.8.17"
-termcolor = "1.1.2"
-tokio-rustls = "0.22.0"
+log = "0.4.25"
+maud = "0.27.0"
+mime_guess = "2.0.5"
+openssl = "0.10.70"
+percent-encoding = "2.3.1"
+pin-project = "1.1.9"
+pulldown-cmark = "0.12.2"
+qrcodegen = "1.8.0"
+rust-embed = "8.5.0"
+rustls-acme = "0.12.1"
+serde_yaml = "0.9.33"
+termcolor = "1.4.1"
+tokio-rustls = "0.26.1"
 
 [dependencies.opuza-monero-client]
 path = "opuza-monero-client"
 version = "0.0.3"
 
 [dependencies.hyper]
-version = "0.14.7"
+version = "0.14.32"
 features = ["server", "stream", "tcp", "http1", "http2"]
 
 [dependencies.serde]
-version = "1.0.167"
+version = "1.0.217"
 features = ["derive"]
 
 [dependencies.snafu]
@@ -50,11 +50,11 @@ version = "0.6.10"
 features = ["backtraces-impl-backtrace-crate"]
 
 [dependencies.clap]
-version = "4.4.4"
+version = "4.5.28"
 features = ["derive","wrap_help", "cargo"]
 
 [dependencies.tokio]
-version = "1.5.0"
+version = "1.43.0"
 features = ["rt", "rt-multi-thread", "macros", "fs", "time"]
 
 [dependencies.tokio-stream]
@@ -66,11 +66,11 @@ version = "0.7.8"
 features = ["compat"]
 
 [dependencies.tower]
-version = "0.4.10"
+version = "0.5.2"
 features = ["make"]
 
 [dependencies.uuid]
-version = "1.1.0"
+version = "1.13.1"
 features = [
     "v4",                # Lets you generate random UUIDs
     "fast-rng",          # Use a faster (but still sufficiently random) RNG
@@ -78,20 +78,20 @@ features = [
 ]
 
 [dev-dependencies]
-bardecoder = "0.2.2"
+bardecoder = "0.5.0"
 chromiumoxide = "0.3.1"
 executable-path = "1.0.0"
 guard = "0.5.1"
-image = "0.22.0"
+image = "0.25.5"
 nix = "0.23.0"
-pretty_assertions = "1.0.0"
-regex = "1.5.4"
-resvg = "0.15.0"
+pretty_assertions = "1.4.1"
+regex = "1.11.1"
+resvg = "0.44.0"
 scraper = "0.12.0"
-tempfile = "3.2.0"
-tiny-skia = "0.5.1"
-unindent = "0.1.7"
-usvg = "0.15.0"
+tempfile = "3.16.0"
+tiny-skia = "0.11.4"
+unindent = "0.2.3"
+usvg = "0.44.0"
 
 [dev-dependencies.opuza-test-context]
 path = "opuza-test-context"
@@ -100,7 +100,7 @@ path = "opuza-test-context"
 path = "lnd-test-context"
 
 [dev-dependencies.rcgen]
-version = "0.8.13"
+version = "0.12.0"
 features = ["x509-parser"]
 
 [dev-dependencies.reqwest]
