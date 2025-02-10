@@ -22,12 +22,8 @@ pub(crate) fn wrap_body(title_slug: &str, body: Markup) -> Response<Body> {
         }
         footer {
           "Powered by "
-          a href="https://github.com/refactor-ring/opuza" {
+          a href="https://github.com/refring/opuza" {
             "Opuza"
-          }
-          ". Have questions? Join us on "
-          a href="https://t.me/opuzadiscussion" {
-            "Telegram"
           }
           "."
         }

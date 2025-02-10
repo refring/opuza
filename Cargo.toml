@@ -5,8 +5,8 @@ description = "File server that accepts Lightning Network payments for downloads
 authors = ["Casey Rodarmor <casey@rodarmor.com>", "Sönke Hahn <soenkehahn@gmail.com>"]
 license = "CC0-1.0"
 edition = "2018"
-repository = "https://github.com/refactor-ring/opuza"
-homepage = "https://github.com/refactor-ring/opuza"
+repository = "https://github.com/refring/opuza"
+homepage = "https://github.com/refring/opuza"
 
 [workspace]
 members = [".", "opuza-monero-client", "opuza-test-context", "bin/prerelease", "bin/publish", "lnd-test-context"]

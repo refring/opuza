@@ -2,8 +2,7 @@
 <br />
 <div align="center">
   <a href="https://crates.io/crates/opuza"><img src="https://img.shields.io/crates/v/opuza.svg?logo=rust" alt="crate"/></a>
-  <a href="https://github.com/refactor-ring/opuza/actions"><img src="https://github.com/refactor-ring/opuza/workflows/Build/badge.svg" alt="build" /></a>
-  <a href="https://t.me/opuzadiscussion"><img src="https://img.shields.io/static/v1?label=chat&message=Telegram&color=blue&logo=telegram" alt="chat on telegram"/></a>
+  <a href="https://github.com/refring/opuza/actions"><img src="https://github.com/refring/opuza/workflows/Build/badge.svg" alt="build" /></a>
 </div>
 <br />
 
@@ -14,13 +13,13 @@ If `opuza` is connected to [monero-wallet-rpc](https://www.getmonero.org/resourc
 Public Opuza instances:
 - Open an issue or submit a PR if you run an Opuza instance and would like it to appear in this readme!
 
-Opuza is free software developed by [@refactor-ring](https://github.com/refactor-ring/), forked of the great project [Agora](https://github.com/agora-org/agora)
+Opuza is free software developed by [@refring](https://github.com/refring/), forked of the great project [Agora](https://github.com/agora-org/agora)
 
 ## Support, Feedback, and Discussion
 
-If you have a question, want to request a feature, or find a bug, please feel free to [open an issue](https://github.com/refactor-ring/opuza/issues/new) or [join our Telegram group](https://t.me/opuzadiscussion).
+If you have a question, want to request a feature, or find a bug, please feel free to [open an issue](https://github.com/refring/opuza/issues/new).
 
-The developer can also be reached [via email](mailto:refactor_ring0@proton.me?subject=Opuza).
+The developer can also be reached [via email](mailto:refring@proton.me?subject=Opuza).
 
 ## Running
 
@@ -35,7 +34,7 @@ See `opuza --help` for more configuration options.
 
 ## Installation
 
-Pre-built binaries for Linux, MacOS, and Windows can be found on [the releases page](https://github.com/refactor-ring/opuza/releases).
+Pre-built binaries for Linux, MacOS, and Windows can be found on [the releases page](https://github.com/refring/opuza/releases).
 
 ## Building from Source
 
@@ -78,7 +77,7 @@ docker run \
 
 To receive release notifications on GitHub, you can watch this repository with [custom notification settings](https://docs.github.com/en/github/managing-subscriptions-and-notifications-on-github/setting-up-notifications/configuring-notifications#configuring-your-watch-settings-for-an-individual-repository).
 
-Additionally, an [RSS](https://en.wikipedia.org/wiki/RSS) feed of `opuza` releases is published [here](https://github.com/refactor-ring/opuza/releases.atom).
+Additionally, an [RSS](https://en.wikipedia.org/wiki/RSS) feed of `opuza` releases is published [here](https://github.com/refring/opuza/releases.atom).
 
 ## Deployment
 

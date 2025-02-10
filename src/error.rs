@@ -55,7 +55,7 @@ pub(crate) enum Error {
   HiddenFileAccess { backtrace: Backtrace, path: PathBuf },
   #[snafu(display(
     "Internal error, this is probably a bug in opuza: {}\n\
-      Consider filing an issue: https://github.com/refactor-ring/opuza/issues/new/",
+      Consider filing an issue: https://github.com/refring/opuza/issues/new/",
     message
   ))]
   Internal {

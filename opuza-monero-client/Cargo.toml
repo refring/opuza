@@ -2,11 +2,11 @@
 name = "opuza-monero-client"
 version = "0.0.3"
 description = "Opuza Monero client library"
-authors = ["refactor-ring <refactor_ring0@proton.me>"]
+authors = ["refring <refring@proton.me>"]
 edition = "2018"
 license = "CC0-1.0"
-repository = "https://github.com/refactor-ring/opuza"
-homepage = "https://github.com/refactor-ring/opuza"
+repository = "https://github.com/refring/opuza"
+homepage = "https://github.com/refring/opuza"
 
 [lib]
 doctest = false
