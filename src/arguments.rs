@@ -65,10 +65,7 @@ pub(crate) struct Arguments {
     requires = "_lnd_rpc_authority"
   )]
   pub(crate) _lnd_rpc_macaroon_path: Option<PathBuf>,
-  #[arg(
-    long,
-    help = "Connect to monero node rpc.",
-  )]
+  #[arg(long, help = "Connect to monero node rpc.")]
   pub(crate) monero_rpc_address: Option<String>,
 }
 
